@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("teacher") // "admin" | "teacher"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  groups    Group[]
+}
+
+model Group {
+  id                String           @id @default(uuid())
+  name              String
+  teacherId         String
+  teacher           User             @relation(fields: [teacherId], references: [id])
+  subject           String
+  subjectShortName  String?
+  quarter           String?
+  classDays         Int[]            // 0=Sunday, 1=Monday, etc.
+  color             String           @default("indigo")
+  classroomCourseId String?
+  
+  students          Student[]
+  evaluationTypes   EvaluationType[]
+  evaluations       Evaluation[]
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model Student {
+  id          String   @id @default(uuid())
+  name        String
+  matricula   String?
+  nickname    String?
+  isRepeating Boolean  @default(false)
+  team        String?
+  teamCoyote  String?
+  
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id])
+  
+  grades      Grade[]
+  attendance  Attendance[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EvaluationType {
+  id           String       @id @default(uuid())
+  name         String
+  weight       Float        // Percentage
+  isAttendance Boolean      @default(false)
+  partial      Int          // 1 or 2
+  
+  groupId      String
+  group        Group        @relation(fields: [groupId], references: [id])
+  
+  evaluations  Evaluation[]
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Evaluation {
+  id                    String         @id @default(uuid())
+  name                  String
+  maxScore              Float
+  partial               Int            // 1 or 2
+  isTeamBased           Boolean        @default(false)
+  teamType              String?        // "base" | "coyote"
+  classroomCourseWorkId String?
+  
+  typeId                String
+  type                  EvaluationType @relation(fields: [typeId], references: [id])
+  
+  groupId               String
+  group                 Group          @relation(fields: [groupId], references: [id])
+  
+  grades                Grade[]
+  
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model Grade {
+  id           String     @id @default(uuid())
+  score        Float?     // Nullable because it might not be graded yet
+  
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id])
+  
+  evaluationId String
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id])
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([studentId, evaluationId])
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  date      DateTime
+  status    String   // "present", "absent", "late", "excused"
+  
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, date])
+}
