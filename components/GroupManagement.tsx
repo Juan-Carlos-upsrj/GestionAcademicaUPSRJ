@@ -34,7 +34,7 @@ const EvaluationTypesEditor: React.FC<{
             <div className="space-y-3 mt-2">
                 {types.map(type => (
                     <div key={type.id} className="grid grid-cols-12 gap-2 items-center">
-                        <div className="col-span-8">
+                        <div className="col-span-7">
                             <input
                                 type="text"
                                 placeholder="Ej. Examen"
@@ -53,6 +53,21 @@ const EvaluationTypesEditor: React.FC<{
                                 max="100"
                             />
                             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[9px] font-bold">%</span>
+                        </div>
+                        <div className="col-span-1 flex justify-center">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const newValue = !type.isAttendance;
+                                    onTypesChange(types.map(t =>
+                                        t.id === type.id ? { ...t, isAttendance: newValue, name: newValue ? 'Asistencia' : t.name } : t
+                                    ));
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors ${type.isAttendance ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-300 hover:text-emerald-500'}`}
+                                title={type.isAttendance ? "Es Asistencia (Automático)" : "Marcar como Asistencia"}
+                            >
+                                <Icon name="check-square" className="w-4 h-4" />
+                            </button>
                         </div>
                         <button
                             type="button"
@@ -338,7 +353,7 @@ const GroupManagement: React.FC = () => {
     };
 
     return (
-        <div className="max-w-[1920px] mx-auto h-full flex flex-col p-2">
+        <div className="max-w-[1920px] mx-auto h-full flex flex-col pl-4 sm:pl-8 pr-8 md:pr-16 lg:pr-20 py-6 overflow-hidden">
             {/* CABECERA DE SECCIÓN COMPACTA */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/40 backdrop-blur-xl p-4 rounded-[2rem] border border-white/60 shadow-xl shadow-slate-200/20 mb-6 shrink-0">
                 <div className="flex items-center gap-4">
@@ -346,45 +361,35 @@ const GroupManagement: React.FC = () => {
                         <Icon name="users" className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight leading-none">Gestión Académica</h2>
-                        <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-[0.2em]">{groups.length} Grupos Configurados</p>
+                        <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Gestión Académica</h1>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{groups.length} Grupos Configurados</p>
                     </div>
                 </div>
 
-                {/* SEARCH BAR */}
-                <div className="flex-1 max-w-md w-full relative group">
-                    <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        placeholder="Buscar alumno, equipo, grupo..."
-                        className="w-full pl-10 pr-4 py-2.5 bg-white/60 border border-slate-200 rounded-xl text-xs font-bold uppercase focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-sm"
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
-                        >
-                            <Icon name="x" className="w-3 h-3" />
-                        </button>
-                    )}
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar alumno, equipo, grupo..."
+                            className="w-full pl-9 pr-4 py-2.5 bg-white rounded-xl border border-white shadow-sm text-sm font-bold text-slate-600 placeholder:text-slate-300 focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Button onClick={() => { setEditingGroup(undefined); setIsModalOpen(true); }} className="!rounded-xl !py-2.5 shadow-lg shadow-primary/20">
+                        <Icon name="plus" className="w-4 h-4 mr-1" />
+                        Nuevo Grupo
+                    </Button>
                 </div>
-
-                <Button
-                    onClick={() => { setEditingGroup(undefined); setIsModalOpen(true); }}
-                    className="w-full sm:w-auto !rounded-xl !py-2.5 !px-6 shadow-lg shadow-primary/30 hover:-translate-y-0.5 transition-transform text-xs"
-                >
-                    <Icon name="plus" className="w-4 h-4" /> Nuevo Grupo
-                </Button>
             </div>
 
-            {/* MAIN CONTENT AREA - MASTER DETAIL LAYOUT */}
-            <div className="flex-1 min-h-0 flex gap-6 overflow-hidden">
+            {/* MAIN CONTENT AREA - VERTICAL STACK LAYOUT */}
+            <div className="flex-1 min-h-0 flex flex-col gap-6 overflow-hidden">
 
-                {/* LEFT COLUMN: GROUPS GRID (Denser) */}
-                <div className={`${selectedGroup ? 'w-[500px] xl:w-[600px] 2xl:w-[700px]' : 'w-full'} transition-all duration-500 overflow-y-auto custom-scrollbar pr-2`}>
-                    <div className={`grid gap-4 ${selectedGroup ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'}`}>
+                {/* TOP SECTION: HORIZONTAL GROUPS LIST */}
+                <div className="w-full shrink-0 overflow-x-auto custom-scrollbar pb-2">
+                    <div className="w-max min-w-full flex gap-4 px-1">
                         <AnimatePresence mode="popLayout">
                             {filteredGroups.map((g, idx) => {
                                 const colorObj = GROUP_COLORS.find(c => c.name === g.color) || GROUP_COLORS[0];
@@ -393,79 +398,61 @@ const GroupManagement: React.FC = () => {
                                 return (
                                     <motion.div
                                         layout
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
                                         transition={{ delay: idx * 0.03 }}
                                         key={g.id}
                                         onClick={() => handleSelectGroup(g.id)}
-                                        className={`group relative p-4 rounded-[1.5rem] border cursor-pointer transition-all duration-500 overflow-hidden ${isSelected
-                                            ? 'border-primary bg-primary/5 shadow-xl scale-[1.02] z-10'
-                                            : 'border-white bg-white/80 hover:border-slate-200 hover:bg-white hover:shadow-lg'
+                                        className={`group relative p-4 rounded-xl cursor-pointer transition-all duration-300 overflow-hidden bg-white hover:shadow-md border-l-4 w-[280px] shrink-0 ${isSelected
+                                            ? `bg-slate-50 shadow-lg scale-[1.02] z-10`
+                                            : `border-y border-r border-slate-100/50 hover:border-r-slate-200`
                                             }`}
+                                        style={{
+                                            borderLeftColor: colorObj.hex,
+                                            boxShadow: isSelected ? `0 10px 15px -3px ${colorObj.hex}20, 0 4px 6px -2px ${colorObj.hex}10` : undefined
+                                        }}
                                     >
-                                        {/* Fondo decorativo con el color del grupo */}
-                                        <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl opacity-10 transition-opacity group-hover:opacity-20 ${colorObj.bg}`} />
-
-                                        <div className="flex justify-between items-start mb-3 relative">
-                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${colorObj.bg} ${colorObj.text} shadow-sm transition-transform group-hover:rotate-6 group-hover:scale-110`}>
-                                                <span className="font-black text-xs">{g.name.substring(0, 2)}</span>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex flex-col">
+                                                <h3
+                                                    className="font-black text-sm uppercase leading-tight"
+                                                    style={{ color: isSelected || true ? colorObj.hex : undefined }}
+                                                >
+                                                    {g.name}
+                                                </h3>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide truncate max-w-[150px]">{g.subjectShortName || g.subject}</p>
                                             </div>
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+
+                                            {/* Action Buttons (Visible on hover or selection) */}
+                                            <div className={`flex gap-1 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); setEditingGroup(g); setIsModalOpen(true); }}
-                                                    className="p-1.5 bg-slate-100 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
-                                                    title="Editar Configuración"
+                                                    className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-md transition-all"
                                                 >
                                                     <Icon name="settings" className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(g); }}
-                                                    className="p-1.5 bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                                                    title="Eliminar Grupo"
-                                                >
-                                                    <Icon name="trash-2" className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div className="relative">
-                                            <h3 className="font-black text-base uppercase text-slate-800 leading-tight mb-0.5 whitespace-normal break-words">{g.name}</h3>
-                                            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wide mb-3 opacity-80 whitespace-normal break-words">{g.subject}</p>
-
-                                            <div className="flex flex-wrap gap-1 mb-3 min-h-[16px]">
+                                        <div className="flex justify-between items-center mt-3">
+                                            <div className="flex -space-x-1">
+                                                {/* Mini Day Indicators */}
                                                 {['L', 'M', 'X', 'J', 'V', 'S'].map(d => {
                                                     const dayName = DAYS_OF_WEEK.find(dw => dw.startsWith(d === 'X' ? 'Mi' : d === 'L' ? 'Lu' : d === 'M' ? 'Ma' : d === 'J' ? 'Ju' : d === 'V' ? 'Vi' : 'Sá'));
                                                     const isActive = g.classDays.includes(dayName as DayOfWeek);
+                                                    if (!isActive) return null;
                                                     return (
-                                                        <span
-                                                            key={d}
-                                                            className={`text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-md transition-colors ${isActive ? 'bg-slate-800 text-white shadow-sm' : 'bg-slate-50 text-slate-300'}`}
-                                                        >
+                                                        <span key={d} className="w-4 h-4 rounded-full bg-slate-100 text-[8px] font-black text-slate-500 flex items-center justify-center ring-1 ring-white">
                                                             {d}
                                                         </span>
                                                     );
                                                 })}
                                             </div>
-
-                                            <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-                                                <div className="flex gap-1.5 items-center">
-                                                    <Icon name="users" className="w-3 h-3 text-slate-400" />
-                                                    <span className="text-xs font-black text-slate-700">{g.students.length}</span>
-                                                </div>
-                                                <div className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg">
-                                                    <span className="text-[9px] font-black uppercase tracking-tighter">{g.quarter || 'S/Q'}</span>
-                                                </div>
+                                            <div className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md">
+                                                {g.students.length} Alumnos
                                             </div>
                                         </div>
-
-                                        {isSelected && (
-                                            <motion.div
-                                                layoutId="active-border"
-                                                className="absolute inset-0 border-2 border-primary rounded-[1.5rem] pointer-events-none"
-                                                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                                            />
-                                        )}
                                     </motion.div>
                                 );
                             })}
@@ -473,26 +460,28 @@ const GroupManagement: React.FC = () => {
 
                         {/* ESTADO VACÍO */}
                         {filteredGroups.length === 0 && (
-                            <div className="col-span-full py-12 flex flex-col items-center justify-center bg-white/40 rounded-[2rem] border-4 border-dashed border-white/60">
-                                <div className="w-16 h-16 bg-slate-200 text-slate-400 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
-                                    <Icon name={searchTerm ? "search" : "users"} className="w-8 h-8" />
+                            <div className="w-[280px] shrink-0 py-8 flex flex-col items-center justify-center bg-white/40 rounded-[2rem] border-4 border-dashed border-white/60">
+                                <div className="w-12 h-12 bg-slate-200 text-slate-400 rounded-xl flex items-center justify-center mb-2 shadow-inner">
+                                    <Icon name={searchTerm ? "search" : "users"} className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-lg font-black text-slate-400 uppercase tracking-widest text-center">{searchTerm ? 'No se encontraron resultados' : 'Sin Grupos Activos'}</h3>
-                                <p className="text-xs text-slate-500 font-medium mt-1 opacity-60 text-center max-w-xs">{searchTerm ? 'Intenta con otro término de búsqueda.' : 'Tu trayectoria académica comienza registrando tu primer grupo.'}</p>
-                                {!searchTerm && <Button onClick={() => setIsModalOpen(true)} className="mt-6 !rounded-xl px-6 text-xs">Comenzar Ahora</Button>}
+                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest text-center">{searchTerm ? 'No hay resultados' : 'Sin Grupos'}</h3>
+                                {!searchTerm && <Button onClick={() => setIsModalOpen(true)} className="mt-3 !rounded-lg px-4 text-[10px]">Crear Grupo</Button>}
                             </div>
                         )}
+
+                        {/* SPACER FANTASMA PARA EL COMPORTAMIENTO DEL SCROLL */}
+                        <div className="w-4 sm:w-8 shrink-0"></div>
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: STUDENT MANAGEMENT PANEL */}
+                {/* BOTTOM SECTION: STUDENT MANAGEMENT PANEL */}
                 <AnimatePresence mode="wait">
                     {selectedGroup && (
                         <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="flex-1 min-w-0"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            className="flex-1 min-h-0 w-full" // Ensure takes full remaining height
                             key={selectedGroup.id}
                         >
                             <StudentManagementPanel group={selectedGroup} searchTerm={searchTerm} />

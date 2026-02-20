@@ -173,19 +173,37 @@ const GradesView: React.FC = () => {
         dispatch({ type: 'ADD_TOAST', payload: { message: `Se importaron ${assignments.length} tareas correctamente.`, type: 'success' } });
     };
 
-    // Helper to normalize strings (remove accents, lowercase)
-    const normalize = (str: string) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    // Helper to normalize strings (remove accents, lowercase, remove punctuation)
+    const normalize = (str: string) => {
+        return str
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") // remove diacritics (accents, ~)
+            .replace(/[.,()'"-]/g, " ")      // replace punctuation with space
+            .replace(/\s+/g, " ")            // normalize spaces
+            .trim();
+    };
 
     const checkMatch = (localName: string, classroomName: string) => {
         const local = normalize(localName);
         const classroom = normalize(classroomName);
         if (local === classroom) return true;
-        const localTokens = local.split(/\s+/);
-        const classroomTokens = classroom.split(/\s+/);
+
+        const localTokens = local.split(' ').filter(Boolean);
+        const classroomTokens = classroom.split(' ').filter(Boolean);
+
+        // Count how many local tokens exist in the classroom name
+        // Use a high threshold, e.g., all tokens of the shorter name must be in the longer name
         const shorter = localTokens.length < classroomTokens.length ? localTokens : classroomTokens;
         const longer = localTokens.length < classroomTokens.length ? classroomTokens : localTokens;
-        if (shorter.length < 2) return local === classroom;
-        return shorter.every(token => longer.includes(token));
+
+        if (shorter.length < 2) return local === classroom; // Too short to guess
+
+        // Check if all parts of the shorter name are found in the longer name
+        const matchCount = shorter.filter(token => longer.includes(token)).length;
+
+        // If it matches all but maybe 1 part (e.g. missing a middle name), consider it a match
+        return matchCount >= shorter.length - 1 && matchCount >= 2;
     };
 
     const fetchStudentMap = async (tokens: any) => {

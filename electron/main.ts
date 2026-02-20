@@ -20,6 +20,7 @@ const dataFilePath = path.join(userDataPath, 'appData.json');
 // Configure logging
 log.transports.file.level = 'info';
 autoUpdater.logger = log;
+autoUpdater.autoInstallOnAppQuit = false;
 
 if (process.platform === 'win32') {
   app.setAppUserModelId('Gestión Académica IAEV');
@@ -123,7 +124,7 @@ if (!gotTheLock) {
       }
 
       if (!isDev) {
-        autoUpdater.checkForUpdatesAndNotify();
+        // autoUpdater.checkForUpdatesAndNotify();
       }
     });
 
@@ -152,6 +153,10 @@ if (!gotTheLock) {
     // Cleanup on closed
     mainWindow.on('closed', () => {
       mainWindow = null;
+      // NUCLEAR OPTION: Force exit immediately when main window closes
+      if (process.platform !== 'darwin') {
+        process.exit(0);
+      }
     });
   };
 
@@ -378,6 +383,15 @@ if (!gotTheLock) {
   });
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    if (process.platform !== 'darwin') {
+      app.exit(0);
+    }
+  });
+
+  app.on('before-quit', () => {
+    // Ensure all windows are destroyed
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.destroy();
+    }
   });
 }

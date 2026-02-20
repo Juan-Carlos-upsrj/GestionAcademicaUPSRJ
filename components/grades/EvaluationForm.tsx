@@ -40,6 +40,7 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ evaluation, group, onSa
             return;
         }
         onSave({
+            ...evaluation, // Preserve existing properties (like classroomId)
             id: evaluation?.id || uuidv4(),
             name,
             maxScore,
@@ -47,7 +48,7 @@ const EvaluationForm: React.FC<EvaluationFormProps> = ({ evaluation, group, onSa
             typeId,
             isTeamBased,
             teamType: isTeamBased ? teamType : undefined
-        });
+        } as Evaluation);
     };
 
     return (

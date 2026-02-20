@@ -4,8 +4,6 @@ import { AppContext } from '../context/AppContext';
 import { Student, Group } from '../types';
 import Icon from './icons/Icon';
 import Modal from './common/Modal';
-import { FixedSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
 
 interface StudentManagementPanelProps {
     group: Group;
@@ -147,67 +145,43 @@ const StudentManagementPanel: React.FC<StudentManagementPanelProps> = ({ group, 
                         )}
                     </div>
                 ) : (
-                    <AutoSizer>
-                        {({ height, width }: { height: number; width: number }) => {
-                            const itemsPerRow = width > 700 ? 2 : 1;
-                            const rowHeight = 84;
-                            const rowCount = Math.ceil(filteredStudents.length / itemsPerRow);
-
-                            return (
-                                <List
-                                    height={height}
-                                    itemCount={rowCount}
-                                    itemSize={rowHeight}
-                                    width={width}
+                    <div className="h-full overflow-y-auto custom-scrollbar pr-4 pb-8">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
+                            {filteredStudents.map((s) => (
+                                <div
+                                    key={s.id}
+                                    onClick={() => startEditing(s)}
+                                    className="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-100 hover:border-primary/30 hover:shadow-md cursor-pointer transition-all group min-h-[76px]"
                                 >
-                                    {({ index, style }) => {
-                                        const startIndex = index * itemsPerRow;
-                                        const items = filteredStudents.slice(startIndex, startIndex + itemsPerRow);
-
-                                        return (
-                                            <div style={style} className="flex gap-2 mb-2">
-                                                {items.map(s => (
-                                                    <div
-                                                        key={s.id}
-                                                        onClick={() => startEditing(s)}
-                                                        className="flex-1 flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-100 hover:border-primary/30 hover:shadow-md cursor-pointer transition-all group h-[76px]"
-                                                    >
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shadow-inner flex-shrink-0 ${s.isRepeating ? 'bg-rose-100 text-rose-600' : 'bg-slate-50 text-slate-400'}`}>
-                                                                {group.students.indexOf(s) + 1}
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <p className="text-sm font-black text-slate-700 truncate uppercase tracking-tight">
-                                                                    {s.name}
-                                                                </p>
-                                                                <div className="flex flex-wrap gap-2 text-[9px] font-bold text-slate-400 mt-1">
-                                                                    {s.matricula && <span className="bg-slate-50 px-1.5 py-0.5 rounded text-slate-500">#{s.matricula}</span>}
-                                                                    {s.nickname && <span className="text-primary bg-primary/5 px-1.5 py-0.5 rounded">"{s.nickname}"</span>}
-                                                                    {s.team && <span className="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 flex items-center gap-1"><Icon name="users" className="w-2.5 h-2.5" /> {s.team}</span>}
-                                                                    {s.teamCoyote && <span className="bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded border border-orange-100 flex items-center gap-1"><Icon name="users" className="w-2.5 h-2.5" /> {s.teamCoyote} (C)</span>}
-                                                                    {s.isRepeating && <span className="text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">R</span>}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button
-                                                                onClick={(e) => handleDeleteStudent(s.id, e)}
-                                                                className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                                                            >
-                                                                <Icon name="trash-2" className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                {/* Spacer for empty slot in last row if needed */}
-                                                {items.length < itemsPerRow && <div className="flex-1" />}
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shadow-inner flex-shrink-0 ${s.isRepeating ? 'bg-rose-100 text-rose-600' : 'bg-slate-50 text-slate-400'}`}>
+                                            {group.students.indexOf(s) + 1}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-black text-slate-700 truncate uppercase tracking-tight">
+                                                {s.name}
+                                            </p>
+                                            <div className="flex flex-wrap gap-2 text-[9px] font-bold text-slate-400 mt-1">
+                                                {s.matricula && <span className="bg-slate-50 px-1.5 py-0.5 rounded text-slate-500">#{s.matricula}</span>}
+                                                {s.nickname && <span className="text-primary bg-primary/5 px-1.5 py-0.5 rounded">"{s.nickname}"</span>}
+                                                {s.team && <span className="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 flex items-center gap-1"><Icon name="users" className="w-2.5 h-2.5" /> {s.team}</span>}
+                                                {s.teamCoyote && <span className="bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded border border-orange-100 flex items-center gap-1"><Icon name="users" className="w-2.5 h-2.5" /> {s.teamCoyote} (C)</span>}
+                                                {s.isRepeating && <span className="text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">R</span>}
                                             </div>
-                                        );
-                                    }}
-                                </List>
-                            );
-                        }}
-                    </AutoSizer>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
+                                        <button
+                                            onClick={(e) => handleDeleteStudent(s.id, e)}
+                                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                        >
+                                            <Icon name="trash-2" className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 )}
             </div>
 

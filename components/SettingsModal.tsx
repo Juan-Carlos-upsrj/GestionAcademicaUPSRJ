@@ -202,6 +202,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                 {settings.professorName}
                             </h3>
                             <p className="text-[10px] text-indigo-500 font-black uppercase tracking-widest mt-1">Docente IAEV</p>
+
+                            <button
+                                onClick={() => {
+                                    if (confirm("¿Estás seguro de que quieres cerrar sesión? Tus datos locales se mantendrán seguros.")) {
+                                        dispatch({ type: 'SET_USER', payload: null });
+                                        onClose();
+                                    }
+                                }}
+                                className="mt-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 text-slate-500 rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center justify-center gap-2 mx-auto"
+                            >
+                                <Icon name="log-out" className="w-3 h-3" />
+                                <span>Cerrar Sesión</span>
+                            </button>
                         </div>
 
                         <nav className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
@@ -348,9 +361,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                     <div className="flex-1">
                                         <p className="font-black text-slate-800 dark:text-slate-100 uppercase text-[10px] tracking-wider mb-1">Actualización</p>
                                         <p className="text-xs text-slate-500 mb-2 truncate">{updateStatus || 'Servidor disponible.'}</p>
-                                        <Button size="sm" onClick={handleCheckForUpdates} disabled={isChecking || isDownloading} className="!py-1 !px-3 !text-xs">
-                                            {isChecking ? 'Verificando...' : 'Revisar Ahora'}
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" onClick={handleCheckForUpdates} disabled={isChecking || isDownloading} className="!py-1 !px-3 !text-xs">
+                                                {isChecking ? 'Verificando...' : 'Revisar Ahora'}
+                                            </Button>
+                                            {downloadPercent === 100 && (
+                                                <Button size="sm" onClick={() => window.electronAPI.restartApp()} className="!py-1 !px-3 !text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200 border-none">
+                                                    <Icon name="refresh-cw" className="w-3 h-3 mr-1" />
+                                                    Reiniciar y Actualizar
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 {!window.electronAPI && (
@@ -392,6 +413,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                             <span className="text-[9px] text-slate-400">¿Las bajas de asistencia reprueban al alumno?</span>
                                         </div>
                                         <input type="checkbox" name="failByAttendance" checked={settings.failByAttendance} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 border-2" />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold text-slate-700">Mínimo de Asistencia (%)</span>
+                                            <span className="text-[9px] text-slate-400">Porcentaje para considerar baja académica.</span>
+                                        </div>
+                                        <input type="number" name="lowAttendanceThreshold" value={settings.lowAttendanceThreshold} onChange={handleChange} className="w-16 p-1.5 border-2 border-slate-200 rounded-xl bg-white text-xs font-bold text-center" />
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-bold text-slate-700">Matrícula en Tablas</span>
