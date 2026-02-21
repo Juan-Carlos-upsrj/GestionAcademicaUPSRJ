@@ -1,5 +1,6 @@
 import React, { useContext, useState, useMemo, useEffect, useCallback, useRef, createContext } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { AttendanceStatus, Student } from '../types';
 import { getClassDates } from '../services/dateUtils';
 import { STATUS_STYLES, ATTENDANCE_STATUSES } from '../constants';
@@ -252,7 +253,8 @@ const Row = React.memo(({ index, style }: ListChildComponentProps) => {
 
 const AttendanceView: React.FC = () => {
     const { state, dispatch } = useContext(AppContext);
-    const { groups, attendance, settings, selectedGroupId } = state;
+    const { settings } = useSettings();
+    const { groups, attendance, selectedGroupId } = state;
 
     const [isTakerOpen, setTakerOpen] = useState(false);
     const [isBulkFillOpen, setBulkFillOpen] = useState(false);

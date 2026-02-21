@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useContext, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Evaluation } from '../types';
 import {
     calculatePartialAverage,
@@ -14,7 +15,8 @@ export const GRADE_SPECIAL = 'GRADE_SPECIAL';
 
 export const useGradesManager = () => {
     const { state, dispatch } = useContext(AppContext);
-    const { groups, evaluations, grades, selectedGroupId, attendance, settings } = state;
+    const { settings, updateSettings } = useSettings();
+    const { groups, evaluations, grades, selectedGroupId, attendance } = state;
 
     const [viewMode, setViewMode] = useState<'ordinary' | 'recovery'>('ordinary');
     const [searchTerm, setSearchTerm] = useState('');
@@ -101,10 +103,6 @@ export const useGradesManager = () => {
         if (selectedGroupId) {
             dispatch({ type: 'SAVE_EVALUATION', payload: { groupId: selectedGroupId, evaluation } });
         }
-    };
-
-    const updateSettings = (partialSettings: any) => {
-        dispatch({ type: 'UPDATE_SETTINGS', payload: partialSettings });
     };
 
     return {

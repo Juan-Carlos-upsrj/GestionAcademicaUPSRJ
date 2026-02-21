@@ -1,27 +1,9 @@
 import React, { createContext, useReducer, useEffect, ReactNode, Dispatch, useState } from 'react';
-import { AppState, AppAction, AttendanceStatus, Group, Evaluation, Student, Settings } from '../types';
+import { AppState, AppAction, AttendanceStatus, Group, Evaluation, Student } from '../types';
 import { GROUP_COLORS } from '../constants';
 import { CompositeDataProvider } from '../services/dataProvider/CompositeDataProvider';
-import { SettingsProvider } from './SettingsContext';
-import { fetchGoogleCalendarEvents } from '../services/calendarService';
 import { getClassDates } from '../services/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
-
-const getLocalDateStr = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const todayStr = getLocalDateStr();
-const today = new Date();
-
-const nextMonth = new Date();
-nextMonth.setMonth(today.getMonth() + 1);
-const nextMonthStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-${String(nextMonth.getDate()).padStart(2, '0')}`;
-
-const fourMonthsLater = new Date();
-fourMonthsLater.setMonth(today.getMonth() + 4);
-const fourMonthsStr = `${fourMonthsLater.getFullYear()}-${String(fourMonthsLater.getMonth() + 1).padStart(2, '0')}-${String(fourMonthsLater.getDate()).padStart(2, '0')}`;
 
 const defaultState: AppState = {
     groups: [],
@@ -30,29 +12,6 @@ const defaultState: AppState = {
     grades: {},
     calendarEvents: [],
     gcalEvents: [],
-    settings: {
-        semesterStart: todayStr,
-        firstPartialEnd: nextMonthStr,
-        semesterEnd: fourMonthsStr,
-        p1EvalStart: todayStr,
-        p1EvalEnd: nextMonthStr,
-        p2EvalStart: nextMonthStr,
-        p2EvalEnd: fourMonthsStr,
-        showMatricula: true,
-        showTeamsInGrades: true,
-        failByAttendance: true,
-        sidebarGroupDisplayMode: 'name-abbrev',
-        theme: 'classic',
-        lowAttendanceThreshold: 80,
-        googleCalendarUrl: '',
-        googleCalendarColor: 'blue',
-        professorName: 'Nombre del Profesor',
-        apiUrl: '',
-        apiKey: '',
-        mobileUpdateUrl: 'https://github.com/Juan-Carlos-upsrj/TestListas',
-        enableReminders: true,
-        reminderTime: 20,
-    },
     activeView: 'dashboard',
     selectedGroupId: null,
     toasts: [],
@@ -113,16 +72,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
                 }));
             });
 
-            const loadedSettingsRaw = loadedState.settings || {};
-            const loadedSettings = loadedSettingsRaw as Partial<Settings>;
-            const migratedSettings = {
-                ...defaultState.settings,
-                ...loadedSettings,
-                p1EvalEnd: loadedSettings.p1EvalEnd || loadedSettings.firstPartialEnd || defaultState.settings.p1EvalEnd,
-                failByAttendance: loadedSettings.failByAttendance !== undefined ? loadedSettings.failByAttendance : defaultState.settings.failByAttendance
-            };
-            migratedSettings.theme = 'classic';
-
             let recoveredTeamNotes: Record<string, string> = {};
             let recoveredCoyoteNotes: Record<string, string> = {};
 
@@ -157,7 +106,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
                 grades: loadedState.grades ?? defaultState.grades,
                 calendarEvents: Array.isArray(loadedState.calendarEvents) ? loadedState.calendarEvents.filter(Boolean) : defaultState.calendarEvents,
                 gcalEvents: Array.isArray(loadedState.gcalEvents) ? loadedState.gcalEvents.filter(Boolean) : defaultState.gcalEvents,
-                settings: migratedSettings,
                 activeView: state.activeView,
                 selectedGroupId: loadedState.selectedGroupId ?? null,
                 toasts: [],
@@ -284,7 +232,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
             updatedGrades[groupId] = updatedGroupGrades;
             return { ...state, grades: updatedGrades };
         }
-        case 'UPDATE_SETTINGS': return { ...state, settings: { ...state.settings, ...action.payload } };
         case 'ADD_TOAST': return { ...state, toasts: [...state.toasts, { ...action.payload, id: Date.now() }] };
         case 'REMOVE_TOAST': return { ...state, toasts: state.toasts.filter(t => t.id !== action.payload) };
         case 'SAVE_EVENT': { const eventExists = state.calendarEvents.some(e => e.id === action.payload.id); return { ...state, calendarEvents: eventExists ? state.calendarEvents.map(e => e.id === action.payload.id ? action.payload : e) : [...state.calendarEvents, action.payload] }; }
@@ -293,7 +240,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         case 'ARCHIVE_CURRENT_STATE': return { ...state, archives: [...state.archives, { id: uuidv4(), name: action.payload, dateArchived: new Date().toISOString(), data: JSON.parse(JSON.stringify(state)) }] };
         case 'RESTORE_ARCHIVE': { const archive = state.archives.find(a => a.id === action.payload); if (!archive) return state; return { ...archive.data, archives: state.archives, toasts: [] }; }
         case 'DELETE_ARCHIVE': return { ...state, archives: state.archives.filter(a => a.id !== action.payload) };
-        case 'TRANSITION_SEMESTER': { const { newGroups, newSettings } = action.payload; return { ...state, groups: newGroups, settings: { ...state.settings, ...newSettings }, attendance: {}, grades: {}, evaluations: {}, calendarEvents: state.calendarEvents.filter(e => e.type !== 'class' && e.type !== 'evaluation'), selectedGroupId: null }; }
+        case 'TRANSITION_SEMESTER': { const { newGroups } = action.payload; return { ...state, groups: newGroups, attendance: {}, grades: {}, evaluations: {}, calendarEvents: state.calendarEvents.filter(e => e.type !== 'class' && e.type !== 'evaluation'), selectedGroupId: null }; }
         case 'RENAME_TEAM': { const { oldName, newName, isCoyote } = action.payload; const targetNotesField = isCoyote ? 'coyoteTeamNotes' : 'teamNotes'; const newNotes = { ...(state[targetNotesField] || {}) }; if (newNotes[oldName]) { newNotes[newName] = newNotes[oldName]; delete newNotes[oldName]; } return { ...state, [targetNotesField]: newNotes, groups: state.groups.map(g => ({ ...g, students: g.students.map(s => { const currentTeam = isCoyote ? s.teamCoyote : s.team; if (currentTeam === oldName) return { ...s, [isCoyote ? 'teamCoyote' : 'team']: newName }; return s; }) })) }; }
         case 'DELETE_TEAM': { const { teamName, isCoyote } = action.payload; const targetNotesField = isCoyote ? 'coyoteTeamNotes' : 'teamNotes'; const newNotes = { ...(state[targetNotesField] || {}) }; delete newNotes[teamName]; return { ...state, [targetNotesField]: newNotes, groups: state.groups.map(g => ({ ...g, students: g.students.map(s => { const currentTeam = isCoyote ? s.teamCoyote : s.team; if (currentTeam === teamName) { const updatedStudent = { ...s }; if (isCoyote) delete (updatedStudent as any).teamCoyote; else delete (updatedStudent as any).team; return updatedStudent; } return s; }) })) }; }
         case 'UPDATE_TEAM_NOTE': { const { teamName, note, isCoyote } = action.payload; const targetNotesField = isCoyote ? 'coyoteTeamNotes' : 'teamNotes'; return { ...state, [targetNotesField]: { ...(state[targetNotesField] || {}), [teamName]: note } }; }
@@ -371,33 +318,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return () => clearTimeout(timeoutId);
     }, [state, isInitialized, dataProvider]);
 
-    useEffect(() => {
-        if (isInitialized && state.settings.googleCalendarUrl) {
-            const gcalColor = GROUP_COLORS.find(c => c.name === state.settings.googleCalendarColor)?.calendar || GROUP_COLORS[0].calendar;
-            fetchGoogleCalendarEvents(state.settings.googleCalendarUrl, gcalColor).then(events => {
-                dispatch({ type: 'SET_GCAL_EVENTS', payload: events });
-            }).catch(error => {
-                console.error("Failed to fetch GCal events:", error);
-                dispatch({ type: 'ADD_TOAST', payload: { message: error.message, type: 'error' } });
-                dispatch({ type: 'SET_GCAL_EVENTS', payload: [] });
-            });
-        } else if (isInitialized) {
-            dispatch({ type: 'SET_GCAL_EVENTS', payload: [] });
-        }
-    }, [isInitialized, state.settings.googleCalendarUrl, state.settings.googleCalendarColor]);
-
-    const updateSettings = React.useCallback((newSettings: Partial<Settings>) => {
-        dispatch({ type: 'UPDATE_SETTINGS', payload: newSettings });
-    }, [dispatch]);
-
     if (!isInitialized) return null;
-
 
     return (
         <AppContext.Provider value={{ state, dispatch }}>
-            <SettingsProvider settings={state.settings} updateSettings={updateSettings}>
-                {children}
-            </SettingsProvider>
+            {children}
         </AppContext.Provider>
     );
 };

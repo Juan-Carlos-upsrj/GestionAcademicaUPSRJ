@@ -388,8 +388,8 @@ const GroupManagement: React.FC = () => {
             <div className="flex-1 min-h-0 flex flex-col gap-6 overflow-hidden">
 
                 {/* TOP SECTION: HORIZONTAL GROUPS LIST */}
-                <div className="w-full shrink-0 overflow-x-auto custom-scrollbar pb-2">
-                    <div className="w-max min-w-full flex gap-4 px-1">
+                <div className="w-full shrink-0 overflow-x-auto custom-scrollbar pb-4">
+                    <div className="w-max min-w-full flex gap-4 py-2">
                         <AnimatePresence mode="popLayout">
                             {filteredGroups.map((g, idx) => {
                                 const colorObj = GROUP_COLORS.find(c => c.name === g.color) || GROUP_COLORS[0];
@@ -469,8 +469,8 @@ const GroupManagement: React.FC = () => {
                             </div>
                         )}
 
-                        {/* SPACER FANTASMA PARA EL COMPORTAMIENTO DEL SCROLL */}
-                        <div className="w-4 sm:w-8 shrink-0"></div>
+                        {/* SPACER FORZADO PARA OVERFLOW-X EN FLEXBOX */}
+                        <div className="w-16 md:w-32 shrink-0"></div>
                     </div>
                 </div>
 

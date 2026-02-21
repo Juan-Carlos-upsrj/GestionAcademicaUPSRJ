@@ -1,6 +1,7 @@
 
 import React, { useContext, useMemo, useEffect, useCallback, useState } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { AttendanceStatus, GroupReportSummary, Group } from '../types';
 import { getClassDates } from '../services/dateUtils';
 import { exportAttendanceToCSV, exportGradesToCSV } from '../services/exportService';
@@ -23,7 +24,7 @@ const getJSZip = (): Promise<any> => {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
         script.onload = () => {
-             // @ts-ignore
+            // @ts-ignore
             resolve(window.JSZip);
         };
         script.onerror = () => reject(new Error('No se pudo cargar JSZip desde el CDN.'));
@@ -33,7 +34,8 @@ const getJSZip = (): Promise<any> => {
 
 const ReportsView: React.FC = () => {
     const { state, dispatch } = useContext(AppContext);
-    const { groups, attendance, evaluations, grades, settings, selectedGroupId } = state;
+    const { settings } = useSettings();
+    const { groups, attendance, evaluations, grades, selectedGroupId } = state;
     const [isExportingMassive, setIsExportingMassive] = useState(false);
     const [massiveProgress, setMassiveProgress] = useState({ current: 0, total: 0, name: '' });
 
@@ -43,7 +45,7 @@ const ReportsView: React.FC = () => {
 
     const group = useMemo(() => groups.find(g => g.id === selectedGroupId), [groups, selectedGroupId]);
     const groupEvaluations = useMemo(() => (evaluations[selectedGroupId || ''] || []), [evaluations, selectedGroupId]);
-    
+
     const groupColorHex = useMemo(() => {
         if (!group) return undefined;
         const colorObj = GROUP_COLORS.find(c => c.name === group.color) || GROUP_COLORS[0];
@@ -118,7 +120,7 @@ const ReportsView: React.FC = () => {
         });
         return summary;
     };
-    
+
     const attendanceHeaders = useMemo(() => group ? getAttendanceHeaders(group) : null, [group, settings.p1EvalEnd]);
     const groupSummaryData = useMemo(() => group ? getSummaryData(group) : null, [group, settings, attendance]);
 
@@ -164,7 +166,7 @@ const ReportsView: React.FC = () => {
             const content = await zip.generateAsync({ type: 'blob' });
             const finalName = `${rootFolderName}.zip`;
             await saveOrShareFile(content, finalName);
-            
+
             dispatch({ type: 'ADD_TOAST', payload: { message: '¡Exportación masiva completa!', type: 'success' } });
         } catch (err) {
             console.error(err);
@@ -218,23 +220,23 @@ const ReportsView: React.FC = () => {
             {group ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <div className="flex flex-wrap justify-start md:justify-end gap-3 mb-4">
-                        <Button 
-                            variant="secondary" 
-                            onClick={handleMassiveExport} 
+                        <Button
+                            variant="secondary"
+                            onClick={handleMassiveExport}
                             disabled={isExportingMassive}
                             className="w-full sm:w-auto bg-indigo-600 !text-white hover:bg-indigo-700 shadow-md"
                         >
-                            <Icon name="download-cloud" className="w-4 h-4" /> 
+                            <Icon name="download-cloud" className="w-4 h-4" />
                             {isExportingMassive ? 'Exportando...' : 'Exportación Masiva (ZIP-PDF)'}
                         </Button>
                         <Button variant="secondary" onClick={handleSinglePDFExport} className="w-full sm:w-auto">
                             <Icon name="file-spreadsheet" className="w-4 h-4" /> PDF Individual
                         </Button>
-                         <Button variant="secondary" onClick={() => exportAttendanceToCSV(group, classDates, attendance[group.id] || {})} className="w-full sm:w-auto">
+                        <Button variant="secondary" onClick={() => exportAttendanceToCSV(group, classDates, attendance[group.id] || {})} className="w-full sm:w-auto">
                             <Icon name="file-spreadsheet" className="w-4 h-4" /> Asistencia (CSV)
                         </Button>
                         <Button variant="secondary" onClick={() => exportGradesToCSV(group, groupEvaluations, grades[group.id] || {})} className="w-full sm:w-auto">
-                           <Icon name="file-spreadsheet" className="w-4 h-4" /> Calificaciones (CSV)
+                            <Icon name="file-spreadsheet" className="w-4 h-4" /> Calificaciones (CSV)
                         </Button>
                     </div>
 
@@ -250,7 +252,7 @@ const ReportsView: React.FC = () => {
                         <div className="lg:col-span-1 bg-surface p-6 rounded-xl shadow-sm border border-border-color flex flex-col justify-center">
                             <h3 className="text-xl font-bold mb-4 text-text-primary">Resumen General</h3>
                             <div className="space-y-4">
-                               <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center">
                                     <span className="font-medium text-text-secondary">Total de Alumnos</span>
                                     <span className="font-bold text-2xl text-primary">{group.students.length}</span>
                                 </div>
@@ -258,14 +260,14 @@ const ReportsView: React.FC = () => {
                                     <span className="font-medium text-text-secondary">Evaluaciones Creadas</span>
                                     <span className="font-bold text-2xl text-primary">{groupEvaluations.length}</span>
                                 </div>
-                                 <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center">
                                     <span className="font-medium text-text-secondary">Días de Clase</span>
                                     <span className="font-bold text-2xl text-primary">{classDates.length}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="bg-surface p-4 rounded-xl shadow-sm border border-border-color overflow-x-auto">
                         <h3 className="text-xl font-bold mb-4 text-text-primary">Registro Detallado de Asistencia</h3>
                         {group.students.length > 0 ? (
@@ -279,10 +281,10 @@ const ReportsView: React.FC = () => {
                                         })}
                                     </tr>
                                     <tr>
-                                        {attendanceHeaders && Object.entries(attendanceHeaders).flatMap(([partialName, months]) => 
-                                            Object.entries(months).map(([monthName, dates], index) => 
-                                                <th key={`${partialName}-${monthName}`} colSpan={dates.length} 
-                                                className={`p-2 font-semibold text-center border-b border-border-color ${index % 2 === 0 ? 'bg-surface-secondary/70' : 'bg-surface-secondary/40'}`}>
+                                        {attendanceHeaders && Object.entries(attendanceHeaders).flatMap(([partialName, months]) =>
+                                            Object.entries(months).map(([monthName, dates], index) =>
+                                                <th key={`${partialName}-${monthName}`} colSpan={dates.length}
+                                                    className={`p-2 font-semibold text-center border-b border-border-color ${index % 2 === 0 ? 'bg-surface-secondary/70' : 'bg-surface-secondary/40'}`}>
                                                     {monthName}
                                                 </th>
                                             )
@@ -323,7 +325,7 @@ const ReportsView: React.FC = () => {
                 </motion.div>
             ) : (
                 <div className="text-center py-20 bg-surface rounded-xl shadow-sm border border-border-color">
-                    <Icon name="bar-chart-3" className="w-20 h-20 mx-auto text-border-color"/>
+                    <Icon name="bar-chart-3" className="w-20 h-20 mx-auto text-border-color" />
                     <p className="mt-4 text-text-secondary">Por favor, selecciona un grupo para ver sus reportes.</p>
                     {groups.length === 0 && <p className="text-text-secondary/70">Primero necesitas crear un grupo en la sección 'Grupos'.</p>}
                 </div>

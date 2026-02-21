@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { AppContext } from './context/AppContext';
+import { useSettings } from './context/SettingsContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import GroupManagement from './components/GroupManagement';
@@ -26,7 +27,8 @@ const normalizeStr = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\
 
 const App: React.FC = () => {
   const { state } = useContext(AppContext);
-  const { settings, teacherSchedule } = state;
+  const { teacherSchedule } = state;
+  const { settings, isLoading: isSettingsLoading } = useSettings();
   const [mobileUpdateInfo, setMobileUpdateInfo] = useState<MobileUpdateInfo | null>(null);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
@@ -126,6 +128,14 @@ const App: React.FC = () => {
         });
     }
   }, [settings.mobileUpdateUrl]);
+
+  if (isSettingsLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <>

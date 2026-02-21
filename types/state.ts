@@ -38,7 +38,6 @@ export interface AppState {
     };
     calendarEvents: CalendarEvent[];
     gcalEvents: CalendarEvent[];
-    settings: Settings;
     activeView: ActiveView;
     selectedGroupId: string | null;
     toasts: Toast[];
@@ -82,7 +81,7 @@ export type AppAction =
     | { type: 'ARCHIVE_CURRENT_STATE'; payload: string }
     | { type: 'RESTORE_ARCHIVE'; payload: string }
     | { type: 'DELETE_ARCHIVE'; payload: string }
-    | { type: 'TRANSITION_SEMESTER'; payload: { newGroups: Group[]; newSettings: Partial<Settings> } }
+    | { type: 'TRANSITION_SEMESTER'; payload: { newGroups: Group[] } }
     | { type: 'RENAME_TEAM'; payload: { oldName: string, newName: string, isCoyote: boolean } }
     | { type: 'DELETE_TEAM'; payload: { teamName: string, isCoyote: boolean } }
     | { type: 'UPDATE_TEAM_NOTE'; payload: { teamName: string, note: string, isCoyote: boolean } }

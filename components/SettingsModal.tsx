@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Settings, Archive } from '../types';
 import Modal from './common/Modal';
 import Button from './common/Button';
@@ -46,7 +47,8 @@ const ProgressCircle: React.FC<{ percent: number }> = ({ percent }) => {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     const { state, dispatch } = useContext(AppContext);
-    const [settings, setSettings] = useState<Settings>(state.settings);
+    const { settings: globalSettings, updateSettings: saveGlobalSettings } = useSettings();
+    const [settings, setSettings] = useState<Settings>(globalSettings);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [updateStatus, setUpdateStatus] = useState<string>('');
     const [downloadPercent, setDownloadPercent] = useState<number>(0);
@@ -63,8 +65,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        setSettings(state.settings);
-    }, [state.settings, isOpen]);
+        setSettings(globalSettings);
+    }, [globalSettings, isOpen]);
 
     useEffect(() => {
         if (window.electronAPI) {
@@ -110,7 +112,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     };
 
     const handleSave = () => {
-        dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
+        saveGlobalSettings(settings);
         dispatch({ type: 'ADD_TOAST', payload: { message: 'Configuración guardada.', type: 'success' } });
         onClose();
     };
@@ -222,7 +224,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             <div className="space-y-4">
                                 <div>
                                     <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-2 ml-2">Inicio de Cuatri</p>
-                                    <button onClick={() => syncScheduleData(state, dispatch)} className="w-full flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-blue-100 shadow-sm">
+                                    <button onClick={() => syncScheduleData(state, dispatch, settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-blue-100 shadow-sm">
                                         <Icon name="calendar" className="w-3.5 h-3.5" /> Cargar Horario
                                     </button>
                                 </div>
@@ -230,10 +232,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                 <div>
                                     <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-2 ml-2">Sincronización Nube</p>
                                     <div className="space-y-2">
-                                        <button onClick={() => syncAttendanceData(state, dispatch, 'all')} className="w-full flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-indigo-100 shadow-sm">
+                                        <button onClick={() => syncAttendanceData(state, dispatch, 'all', settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-indigo-100 shadow-sm">
                                             <Icon name="upload-cloud" className="w-3.5 h-3.5" /> Subir Asistencias
                                         </button>
-                                        <button onClick={() => syncGradesData(state, dispatch)} className="w-full flex items-center gap-2 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-emerald-100 shadow-sm">
+                                        <button onClick={() => syncGradesData(state, dispatch, settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-emerald-100 shadow-sm">
                                             <Icon name="graduation-cap" className="w-3.5 h-3.5" /> Subir Califics.
                                         </button>
                                     </div>

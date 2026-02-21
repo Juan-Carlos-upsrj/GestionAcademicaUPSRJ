@@ -1,5 +1,6 @@
 import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Student, TutorshipEntry } from '../types';
 import Icon from './icons/Icon';
 import Button from './common/Button';
@@ -28,23 +29,23 @@ const TutorshipForm: React.FC<TutorshipFormProps> = ({ student, initialEntry, on
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <p className="text-sm font-medium text-slate-500">Editando ficha de: <span className="text-primary font-bold">{student.name}</span></p>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-black uppercase text-text-secondary mb-1 ml-1">Fortalezas</label>
-                    <textarea value={strengths} onChange={e => setStrengths(e.target.value)} placeholder="Habilidades, aptitudes..." className="w-full p-2 border-2 border-border-color rounded-xl bg-surface focus:ring-2 focus:ring-primary min-h-[120px] text-sm"/>
+                    <textarea value={strengths} onChange={e => setStrengths(e.target.value)} placeholder="Habilidades, aptitudes..." className="w-full p-2 border-2 border-border-color rounded-xl bg-surface focus:ring-2 focus:ring-primary min-h-[120px] text-sm" />
                 </div>
                 <div>
                     <label className="block text-xs font-black uppercase text-text-secondary mb-1 ml-1">Áreas de Oportunidad</label>
-                    <textarea value={opportunities} onChange={e => setOpportunities(e.target.value)} placeholder="Debilidades, retos..." className="w-full p-2 border-2 border-border-color rounded-xl bg-surface focus:ring-2 focus:ring-primary min-h-[120px] text-sm"/>
+                    <textarea value={opportunities} onChange={e => setOpportunities(e.target.value)} placeholder="Debilidades, retos..." className="w-full p-2 border-2 border-border-color rounded-xl bg-surface focus:ring-2 focus:ring-primary min-h-[120px] text-sm" />
                 </div>
             </div>
-            
+
             <div>
                 <label className="block text-xs font-black uppercase text-text-secondary mb-1 ml-1">Resumen Académico (Público para otros docentes)</label>
-                <textarea value={summary} onChange={e => setSummary(e.target.value)} placeholder="Notas para otros profesores..." className="w-full p-2 border-2 border-border-color rounded-xl bg-surface focus:ring-2 focus:ring-primary min-h-[100px] text-sm"/>
+                <textarea value={summary} onChange={e => setSummary(e.target.value)} placeholder="Notas para otros profesores..." className="w-full p-2 border-2 border-border-color rounded-xl bg-surface focus:ring-2 focus:ring-primary min-h-[100px] text-sm" />
             </div>
-            
+
             <div className="flex justify-end gap-3 pt-2">
                 <Button variant="secondary" onClick={onCancel}>Cancelar</Button>
                 <Button type="submit">
@@ -58,15 +59,16 @@ const TutorshipForm: React.FC<TutorshipFormProps> = ({ student, initialEntry, on
 
 const TutorshipView: React.FC = () => {
     const { state, dispatch } = useContext(AppContext);
-    const { groups, selectedGroupId, tutorshipData = {}, groupTutors = {}, settings, attendance, evaluations, grades } = state;
-    
+    const { settings } = useSettings();
+    const { groups, selectedGroupId, tutorshipData = {}, groupTutors = {}, attendance, evaluations, grades } = state;
+
     const [searchTerm, setSearchTerm] = useState('');
     const [editingStudent, setEditingStudent] = useState<Student | null>(null);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
-    
+
     const group = useMemo(() => groups.find(g => g.id === selectedGroupId), [groups, selectedGroupId]);
-    
+
     useEffect(() => {
         if (selectedGroupId && settings.apiUrl) {
             handleSync(true); // Sincronización silenciosa al cambiar de grupo
@@ -82,8 +84,8 @@ const TutorshipView: React.FC = () => {
     const filteredStudents = useMemo(() => {
         if (!group) return [];
         const term = searchTerm.toLowerCase();
-        return group.students.filter(s => 
-            s.name.toLowerCase().includes(term) || 
+        return group.students.filter(s =>
+            s.name.toLowerCase().includes(term) ||
             (s.matricula && s.matricula.toLowerCase().includes(term))
         );
     }, [group, searchTerm]);
@@ -103,14 +105,14 @@ const TutorshipView: React.FC = () => {
     const handleSaveEntry = (entry: TutorshipEntry) => {
         if (editingStudent && group) {
             // Actualizar datos de tutoreo
-            dispatch({ 
-                type: 'UPDATE_TUTORSHIP', 
-                payload: { studentId: editingStudent.id, entry: { ...entry, author: settings.professorName } } 
+            dispatch({
+                type: 'UPDATE_TUTORSHIP',
+                payload: { studentId: editingStudent.id, entry: { ...entry, author: settings.professorName } }
             });
 
             setIsEditorOpen(false);
             setEditingStudent(null);
-            
+
             // Sincronizar cambios inmediatamente (silencioso)
             setTimeout(() => handleSync(true), 500);
         }
@@ -119,7 +121,7 @@ const TutorshipView: React.FC = () => {
     const handleSync = async (silent = false) => {
         if (!silent) setIsSyncing(true);
         try {
-            await syncTutorshipData(state, dispatch, silent);
+            await syncTutorshipData(state, dispatch, settings, silent);
         } finally {
             if (!silent) setIsSyncing(false);
         }
@@ -138,8 +140,8 @@ const TutorshipView: React.FC = () => {
             <div className="bg-surface p-4 mb-6 rounded-2xl border border-border-color shadow-sm space-y-4 shrink-0">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex flex-wrap items-center gap-4">
-                        <select 
-                            value={selectedGroupId || ''} 
+                        <select
+                            value={selectedGroupId || ''}
                             onChange={(e) => dispatch({ type: 'SET_SELECTED_GROUP', payload: e.target.value })}
                             className="p-2 border-2 border-border-color rounded-xl bg-white text-sm font-bold focus:ring-2 focus:ring-primary min-w-[200px]"
                         >
@@ -150,20 +152,20 @@ const TutorshipView: React.FC = () => {
                             <span className="text-[10px] font-black uppercase text-text-secondary tracking-widest leading-none">Responsable del Grupo</span>
                             <div className="flex items-center gap-2">
                                 <span className={`text-sm font-bold ${canEdit ? 'text-indigo-600' : 'text-slate-600'}`}>{currentTutor}</span>
-                                <button onClick={handleManualSetTutor} className="p-1 hover:bg-slate-100 rounded text-slate-400"><Icon name="edit-3" className="w-3.5 h-3.5"/></button>
+                                <button onClick={handleManualSetTutor} className="p-1 hover:bg-slate-100 rounded text-slate-400"><Icon name="edit-3" className="w-3.5 h-3.5" /></button>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <div className="relative flex-1 md:w-64">
                             <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <input type="text" className="block w-full pl-9 pr-3 py-2 border-2 border-border-color rounded-xl bg-white text-sm focus:ring-2 focus:ring-primary" placeholder="Filtrar por nombre..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
-                        <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            onClick={() => handleSync(false)} 
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleSync(false)}
                             disabled={isSyncing}
                             className="bg-indigo-600 !text-white hover:bg-indigo-700 shadow-md"
                         >
@@ -172,13 +174,13 @@ const TutorshipView: React.FC = () => {
                         </Button>
                     </div>
                 </div>
-                
+
                 {group && (
                     <div className={`flex items-center gap-2 px-3 py-2 border rounded-xl transition-all ${canEdit ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
                         <Icon name={canEdit ? "check-circle-2" : "info"} className="w-4 h-4" />
                         <p className="text-xs font-medium">
-                            {canEdit ? 
-                                <span><b>Modo Edición Activado.</b> Como tutor asignado, puedes guardar cambios en las fichas.</span> : 
+                            {canEdit ?
+                                <span><b>Modo Edición Activado.</b> Como tutor asignado, puedes guardar cambios en las fichas.</span> :
                                 <span><b>Modo Colaborativo.</b> Viendo notas de <b>{currentTutor}</b>. Contacta al tutor para modificaciones.</span>
                             }
                         </p>
@@ -210,7 +212,7 @@ const TutorshipView: React.FC = () => {
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">{student.matricula || 'Sin Matrícula'}</p>
                                             </div>
                                             {canEdit && (
-                                                <button onClick={() => { setEditingStudent(student); setIsEditorOpen(true); }} className="p-2 bg-white border border-slate-200 rounded-xl text-primary hover:bg-primary hover:text-white shadow-sm transition-all"><Icon name="edit-3" className="w-4 h-4"/></button>
+                                                <button onClick={() => { setEditingStudent(student); setIsEditorOpen(true); }} className="p-2 bg-white border border-slate-200 rounded-xl text-primary hover:bg-primary hover:text-white shadow-sm transition-all"><Icon name="edit-3" className="w-4 h-4" /></button>
                                             )}
                                         </div>
 
@@ -254,15 +256,15 @@ const TutorshipView: React.FC = () => {
                 </div>
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center opacity-30 py-20">
-                    <Icon name="book-marked" className="w-20 h-20 mb-4"/>
+                    <Icon name="book-marked" className="w-20 h-20 mb-4" />
                     <h3 className="text-xl font-black uppercase">Fichas de Tutoría</h3>
                     <p className="text-sm">Selecciona un grupo para cargar los datos compartidos.</p>
                 </div>
             )}
 
             {editingStudent && (
-                <Modal isOpen={isEditorOpen} onClose={() => {setIsEditorOpen(false); setEditingStudent(null);}} title="Editar Ficha de Alumno" size="lg">
-                    <TutorshipForm student={editingStudent} initialEntry={tutorshipData[editingStudent.id]} onSave={handleSaveEntry} onCancel={() => {setIsEditorOpen(false); setEditingStudent(null);}} />
+                <Modal isOpen={isEditorOpen} onClose={() => { setIsEditorOpen(false); setEditingStudent(null); }} title="Editar Ficha de Alumno" size="lg">
+                    <TutorshipForm student={editingStudent} initialEntry={tutorshipData[editingStudent.id]} onSave={handleSaveEntry} onCancel={() => { setIsEditorOpen(false); setEditingStudent(null); }} />
                 </Modal>
             )}
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { CalendarEvent } from '../types';
 import { getClassDates } from '../services/dateUtils';
 import { GROUP_COLORS } from '../constants';
@@ -8,7 +9,8 @@ import EventModal from './EventModal';
 
 const CalendarView: React.FC = () => {
     const { state } = useContext(AppContext);
-    const { groups, settings, calendarEvents, gcalEvents } = state;
+    const { settings } = useSettings();
+    const { groups, calendarEvents, gcalEvents } = state;
 
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isEventModalOpen, setEventModalOpen] = useState(false);
@@ -24,7 +26,7 @@ const CalendarView: React.FC = () => {
             if (events[event.date].some(e => e.id === event.id)) return;
             events[event.date].push(event);
         };
-        
+
         groups.forEach(group => {
             const classDates = getClassDates(settings.semesterStart, settings.semesterEnd, group.classDays);
             const groupColor = GROUP_COLORS.find(c => c.name === group.color) || GROUP_COLORS[0];
@@ -44,7 +46,7 @@ const CalendarView: React.FC = () => {
         gcalEvents.forEach(event => addEvent(event));
 
         Object.values(events).forEach(dayEvents => {
-            dayEvents.sort((a,b) => (a.type === 'gcal' ? -1 : 1) - (b.type === 'gcal' ? -1 : 1) || a.title.localeCompare(b.title));
+            dayEvents.sort((a, b) => (a.type === 'gcal' ? -1 : 1) - (b.type === 'gcal' ? -1 : 1) || a.title.localeCompare(b.title));
         });
 
         return events;
@@ -87,7 +89,7 @@ const CalendarView: React.FC = () => {
             const dayEvents = [...(allEventsByDate[dateStr] || [])];
             const dayOfWeek = date.getDay();
             const isToday = dateStr === todayStr;
-            
+
             if (dayOfWeek === 0 || dayOfWeek === 6) {
                 const weekendEvent: CalendarEvent = {
                     id: `weekend-rest-${dateStr}`,
@@ -102,8 +104,8 @@ const CalendarView: React.FC = () => {
             }
 
             cells.push(
-                <div 
-                    key={day} 
+                <div
+                    key={day}
                     className="relative border-r border-b border-border-color p-1 sm:p-2 min-h-[100px] sm:min-h-[120px] flex flex-col cursor-pointer transition-colors hover:bg-border-color/40"
                     onClick={() => handleDateClick(day)}
                 >
@@ -127,7 +129,7 @@ const CalendarView: React.FC = () => {
         }
         return cells;
     };
-    
+
     const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
     return (
@@ -139,7 +141,7 @@ const CalendarView: React.FC = () => {
                     <button onClick={handleNextMonth} className="p-2 rounded-md hover:bg-surface-secondary transition-colors"><Icon name="arrow-right" /></button>
                 </div>
             </div>
-            
+
             <div className="bg-surface rounded-xl shadow-sm border border-border-color overflow-hidden">
                 <div className="grid grid-cols-7">
                     {weekDays.map(day => (
@@ -153,11 +155,11 @@ const CalendarView: React.FC = () => {
                     {renderCalendarGrid()}
                 </div>
             </div>
-            
+
             {selectedDate && (
-                <EventModal 
-                    isOpen={isEventModalOpen} 
-                    onClose={() => setEventModalOpen(false)} 
+                <EventModal
+                    isOpen={isEventModalOpen}
+                    onClose={() => setEventModalOpen(false)}
                     date={selectedDate}
                     events={allEventsByDate[selectedDate.toISOString().split('T')[0]] || []}
                 />

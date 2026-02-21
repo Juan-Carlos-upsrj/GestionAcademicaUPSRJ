@@ -130,7 +130,7 @@ const StudentManagementPanel: React.FC<StudentManagementPanelProps> = ({ group, 
             </div>
 
             {/* LISTA DE ALUMNOS VIRTUALIZADA */}
-            <div className="flex-1 overflow-hidden pr-2">
+            <div className="flex-1 overflow-hidden">
                 {filteredStudents.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-slate-300 opacity-60">
                         <Icon name="users" className="w-16 h-16 mb-4 stroke-1" />
@@ -145,8 +145,8 @@ const StudentManagementPanel: React.FC<StudentManagementPanelProps> = ({ group, 
                         )}
                     </div>
                 ) : (
-                    <div className="h-full overflow-y-auto custom-scrollbar pr-4 pb-8">
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
+                    <div className="h-full overflow-y-auto custom-scrollbar pb-12 pr-6 lg:pr-12">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
                             {filteredStudents.map((s) => (
                                 <div
                                     key={s.id}

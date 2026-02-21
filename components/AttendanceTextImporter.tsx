@@ -1,5 +1,6 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Group, AttendanceStatus, Student } from '../types';
 import Modal from './common/Modal';
 import Button from './common/Button';
@@ -28,8 +29,8 @@ const normalizeText = (text: string) => {
 };
 
 const AttendanceTextImporter: React.FC<AttendanceTextImporterProps> = ({ isOpen, onClose, group }) => {
-    const { state, dispatch } = useContext(AppContext);
-    const { settings } = state;
+    const { dispatch } = useContext(AppContext);
+    const { settings } = useSettings();
     const [step, setStep] = useState(1); // 1: paste, 2: verify
     const [pastedText, setPastedText] = useState('');
     const [error, setError] = useState('');
@@ -42,15 +43,15 @@ const AttendanceTextImporter: React.FC<AttendanceTextImporterProps> = ({ isOpen,
 
         const startYear = startDate.getFullYear();
         const endYear = endDate.getFullYear();
-        
+
         let yearInstruction = `Para las fechas, asume que el año es ${startYear}.`;
-        
+
         if (startYear !== endYear) {
             const year1Months = new Set<string>();
             const year2Months = new Set<string>();
-            
+
             let currentDate = new Date(startDate);
-            while(currentDate <= endDate) {
+            while (currentDate <= endDate) {
                 const currentYear = currentDate.getFullYear();
                 const currentMonth = currentDate.toLocaleString('es-ES', { month: 'long' });
                 if (currentYear === startYear) {
@@ -61,7 +62,7 @@ const AttendanceTextImporter: React.FC<AttendanceTextImporterProps> = ({ isOpen,
                 // Move to the next month safely
                 currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
             }
-            
+
             yearInstruction = `El semestre abarca dos años. Para los meses de ${Array.from(year1Months).join(', ')}, usa el año ${startYear}. Para los meses de ${Array.from(year2Months).join(', ')}, usa el año ${endYear}.`;
         }
 
@@ -109,7 +110,7 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
 
         const studentMap = new Map(group.students.map(s => [normalizeText(s.name), s]));
         const validStatuses = Object.values(AttendanceStatus);
-        
+
         const records: ParsedRecord[] = data.attendanceRecords
             .filter((rec: any) => rec.studentName && rec.date && rec.status && validStatuses.includes(rec.status as AttendanceStatus))
             .map((rec: any) => {
@@ -131,7 +132,7 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
         setParsedRecords(records);
         setStep(2);
     };
-    
+
     const handleRecordChange = (index: number, studentId: string) => {
         const updatedRecords = [...parsedRecords];
         const student = group.students.find(s => s.id === studentId) || null;
@@ -144,10 +145,10 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
         if (validRecordsCount > 0) {
             setConfirmModalOpen(true);
         } else {
-             dispatch({ type: 'ADD_TOAST', payload: { message: 'No hay registros válidos para importar.', type: 'error' } });
+            dispatch({ type: 'ADD_TOAST', payload: { message: 'No hay registros válidos para importar.', type: 'error' } });
         }
     };
-    
+
     const executeImport = () => {
         const validRecords = parsedRecords
             .filter(r => r.matchedStudent)
@@ -157,7 +158,7 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
                 status: r.status,
             }));
 
-         dispatch({
+        dispatch({
             type: 'BULK_SET_ATTENDANCE',
             payload: { groupId: group.id, records: validRecords }
         });
@@ -173,7 +174,7 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
         setStep(1);
         onClose();
     };
-    
+
     const renderStepOne = () => (
         <>
             <div>
@@ -183,7 +184,7 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
                     {promptText}
                 </pre>
                 <Button size="sm" variant="secondary" className="mt-2" onClick={() => navigator.clipboard.writeText(promptText)}>
-                    <Icon name="edit-3" className="w-4 h-4"/> Copiar Prompt
+                    <Icon name="edit-3" className="w-4 h-4" /> Copiar Prompt
                 </Button>
             </div>
             <div>
@@ -205,20 +206,20 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
             )}
         </>
     );
-    
+
     const renderStepTwo = () => {
         const matchedCount = parsedRecords.filter(r => r.matchedStudent).length;
         const unmatchedCount = parsedRecords.length - matchedCount;
 
         return (
-             <div>
+            <div>
                 <h3 className="font-semibold mb-2 text-lg">Paso 3: Verifica los Datos</h3>
                 <p className="text-sm text-slate-500 mb-4">
                     Revisa los registros extraídos. Asigna un alumno a los nombres no reconocidos. Los registros sin un alumno asignado serán ignorados.
                 </p>
                 <div className="p-2 bg-slate-100 dark:bg-slate-700/50 rounded-md text-sm mb-4 flex justify-around">
-                    <span><Icon name="check-circle-2" className="inline w-4 h-4 mr-1 text-green-500"/>{matchedCount} Coincidencias</span>
-                    <span><Icon name="x-circle" className="inline w-4 h-4 mr-1 text-red-500"/>{unmatchedCount} Sin coincidencia</span>
+                    <span><Icon name="check-circle-2" className="inline w-4 h-4 mr-1 text-green-500" />{matchedCount} Coincidencias</span>
+                    <span><Icon name="x-circle" className="inline w-4 h-4 mr-1 text-red-500" />{unmatchedCount} Sin coincidencia</span>
                 </div>
                 <div className="max-h-[40vh] overflow-y-auto pr-2">
                     <table className="w-full text-sm">
@@ -235,8 +236,8 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
                                 <tr key={index} className={`border-b dark:border-slate-700/50 ${!record.matchedStudent ? 'bg-red-50 dark:bg-red-900/30' : ''}`}>
                                     <td className="p-2">{record.originalName}</td>
                                     <td className="p-2">
-                                        <select 
-                                            value={record.matchedStudent?.id || ''} 
+                                        <select
+                                            value={record.matchedStudent?.id || ''}
                                             onChange={e => handleRecordChange(index, e.target.value)}
                                             className="w-full p-1 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-xs"
                                         >
@@ -254,7 +255,7 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
             </div>
         );
     };
-    
+
     const matchedCount = parsedRecords.filter(r => r.matchedStudent).length;
     const unmatchedCount = parsedRecords.length - matchedCount;
 
@@ -265,20 +266,20 @@ Analiza la tabla completa y genera un registro para cada alumno y cada fecha que
                     {step === 1 ? renderStepOne() : renderStepTwo()}
                 </div>
                 <div className="flex justify-between items-center mt-6">
-                     {step === 2 && (
+                    {step === 2 && (
                         <Button variant="secondary" onClick={() => { setStep(1); setError(''); }}>
                             <Icon name="arrow-left" className="w-4 h-4" /> Volver
                         </Button>
                     )}
-                     <div className={`flex gap-3 ${step === 2 ? '' : 'w-full justify-end'}`}>
+                    <div className={`flex gap-3 ${step === 2 ? '' : 'w-full justify-end'}`}>
                         <Button variant="secondary" onClick={handleClose}>Cancelar</Button>
                         {step === 1 ? (
                             <Button onClick={handleVerify} disabled={!pastedText}>
-                                Verificar Datos <Icon name="arrow-right" className="w-4 h-4"/>
+                                Verificar Datos <Icon name="arrow-right" className="w-4 h-4" />
                             </Button>
                         ) : (
-                             <Button onClick={handleImportClick} disabled={matchedCount === 0}>
-                                <Icon name="upload-cloud" className="w-4 h-4"/> Confirmar e Importar
+                            <Button onClick={handleImportClick} disabled={matchedCount === 0}>
+                                <Icon name="upload-cloud" className="w-4 h-4" /> Confirmar e Importar
                             </Button>
                         )}
                     </div>

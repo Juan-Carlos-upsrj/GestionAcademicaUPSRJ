@@ -1,6 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Group, AttendanceStatus } from '../types';
 import Icon from './icons/Icon';
 import BirthdayCelebration from './BirthdayCelebration';
@@ -22,10 +23,10 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 // --- WIDGETS ---
 
 const WelcomeWidget: React.FC<{ dateString: string }> = ({ dateString }) => {
-    const { state } = useContext(AppContext);
+    const { settings } = useSettings();
     return (
         <div className="flex flex-col justify-center h-full px-4" id="dashboard-welcome-widget">
-            <h3 className="font-extrabold text-xl sm:text-2xl mb-1 text-primary truncate tracking-tight">¡Hola, {state.settings.professorName}!</h3>
+            <h3 className="font-extrabold text-xl sm:text-2xl mb-1 text-primary truncate tracking-tight">¡Hola, {settings.professorName}!</h3>
             <p className="text-sm text-text-secondary font-medium capitalize opacity-80">{dateString}</p>
         </div>
     );
@@ -124,10 +125,11 @@ const CombinedOverviewWidget: React.FC<{ todayStr: string }> = ({ todayStr }) =>
 
 const QuickActionsWidget: React.FC = () => {
     const { state, dispatch } = useContext(AppContext);
+    const { settings } = useSettings();
     return (
         <div className="flex flex-col gap-3 h-full justify-center px-4">
             <Button
-                onClick={() => syncAttendanceData(state, dispatch, 'today')}
+                onClick={() => syncAttendanceData(state, dispatch, 'today', settings)}
                 variant="primary"
                 size="md"
                 className="w-full shadow-lg"

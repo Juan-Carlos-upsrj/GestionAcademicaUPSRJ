@@ -1,6 +1,6 @@
-
 import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import Modal from './common/Modal';
 import Button from './common/Button';
 import Icon from './icons/Icon';
@@ -22,7 +22,8 @@ interface GroupAction {
 
 const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpen, onClose }) => {
     const { state, dispatch } = useContext(AppContext);
-    const { groups, settings } = state;
+    const { settings, updateSettings } = useSettings();
+    const { groups } = state;
     const [step, setStep] = useState(1);
     const [groupActions, setGroupActions] = useState<GroupAction[]>([]);
     const [archiveName, setArchiveName] = useState('');
@@ -35,18 +36,18 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
         if (isOpen) {
             setStep(1);
             setArchiveName(generateArchiveName(settings.semesterStart, settings.semesterEnd));
-            
+
             // Default next semester dates (guess: +4 months)
             const end = new Date(settings.semesterEnd);
             const nextStart = new Date(end);
             nextStart.setDate(end.getDate() + 7); // 1 week break
-            
+
             const nextPartial = new Date(nextStart);
             nextPartial.setMonth(nextStart.getMonth() + 2);
-            
+
             const nextEnd = new Date(nextStart);
             nextEnd.setMonth(nextStart.getMonth() + 4);
-            
+
             setNewSemesterStart(nextStart.toISOString().split('T')[0]);
             setNewFirstPartialEnd(nextPartial.toISOString().split('T')[0]);
             setNewSemesterEnd(nextEnd.toISOString().split('T')[0]);
@@ -75,7 +76,7 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
     const executeTransition = () => {
         // 1. Archive
         dispatch({ type: 'ARCHIVE_CURRENT_STATE', payload: archiveName });
-        
+
         // 2. Process Groups
         const newGroups: Group[] = [];
         groups.forEach(g => {
@@ -92,16 +93,18 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
             }
         });
 
-        // 3. Transition
+        // 3. Update Settings
+        updateSettings({
+            semesterStart: newSemesterStart,
+            firstPartialEnd: newFirstPartialEnd,
+            semesterEnd: newSemesterEnd
+        });
+
+        // 4. Transition State
         dispatch({
             type: 'TRANSITION_SEMESTER',
             payload: {
-                newGroups,
-                newSettings: {
-                    semesterStart: newSemesterStart,
-                    firstPartialEnd: newFirstPartialEnd,
-                    semesterEnd: newSemesterEnd
-                }
+                newGroups
             }
         });
 
@@ -113,7 +116,7 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
         <div className="space-y-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
                 <h3 className="font-bold text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
-                    <Icon name="download-cloud" className="w-5 h-5"/> Paso 1: Respaldo Automático
+                    <Icon name="download-cloud" className="w-5 h-5" /> Paso 1: Respaldo Automático
                 </h3>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
                     Antes de borrar cualquier dato, guardaremos una copia exacta de tu estado actual (asistencia, calificaciones, grupos) en el historial. Podrás consultarlo cuando quieras en modo "Solo Lectura".
@@ -121,9 +124,9 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
             </div>
             <div>
                 <label className="block text-sm font-medium mb-1">Nombre del Respaldo</label>
-                <input 
-                    type="text" 
-                    value={archiveName} 
+                <input
+                    type="text"
+                    value={archiveName}
                     onChange={e => setArchiveName(e.target.value)}
                     className="w-full p-2 border border-border-color rounded-md bg-surface"
                 />
@@ -156,8 +159,8 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
                                     <td className="p-2 font-medium">{g.name} <span className="text-xs text-text-secondary block">{g.subject}</span></td>
                                     <td className="p-2">{g.quarter || '-'}</td>
                                     <td className="p-2">
-                                        <select 
-                                            value={action.action} 
+                                        <select
+                                            value={action.action}
                                             onChange={(e) => handleActionChange(g.id, e.target.value as ActionType)}
                                             className="p-1 border border-border-color rounded bg-surface text-xs w-full"
                                         >
@@ -167,8 +170,8 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
                                         </select>
                                     </td>
                                     <td className="p-2">
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={action.nextQuarter}
                                             onChange={(e) => handleQuarterChange(g.id, e.target.value)}
                                             disabled={action.action === 'delete'}
@@ -204,7 +207,7 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
                     <input type="date" value={newSemesterEnd} onChange={e => setNewSemesterEnd(e.target.value)} className="mt-1 w-full p-2 border border-border-color rounded-md bg-surface" />
                 </div>
             </div>
-            
+
             <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
                 <Icon name="info" className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
                 <div>
@@ -222,19 +225,19 @@ const SemesterTransitionModal: React.FC<SemesterTransitionModalProps> = ({ isOpe
             {step === 1 && renderStep1()}
             {step === 2 && renderStep2()}
             {step === 3 && renderStep3()}
-            
+
             <div className="flex justify-between mt-8 pt-4 border-t border-border-color">
                 {step > 1 ? (
                     <Button variant="secondary" onClick={() => setStep(step - 1)}>
-                        <Icon name="arrow-left" className="w-4 h-4"/> Anterior
+                        <Icon name="arrow-left" className="w-4 h-4" /> Anterior
                     </Button>
                 ) : (
                     <Button variant="secondary" onClick={onClose}>Cancelar</Button>
                 )}
-                
+
                 {step < 3 ? (
                     <Button onClick={() => setStep(step + 1)}>
-                        Siguiente <Icon name="arrow-right" className="w-4 h-4"/>
+                        Siguiente <Icon name="arrow-right" className="w-4 h-4" />
                     </Button>
                 ) : (
                     <Button onClick={executeTransition} className="bg-accent-red hover:bg-red-600 text-white">

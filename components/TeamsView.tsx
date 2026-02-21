@@ -1,6 +1,7 @@
 
 import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useSettings } from '../context/SettingsContext';
 import { Student } from '../types';
 import Icon from './icons/Icon';
 import Button from './common/Button';
@@ -13,8 +14,9 @@ const INDIVIDUAL_WORK = "TRABAJO INDIVIDUAL";
 
 const TeamsView: React.FC = () => {
     const { state, dispatch } = useContext(AppContext);
-    const { groups, selectedGroupId, teamNotes = {}, coyoteTeamNotes = {}, grades, evaluations, settings, attendance } = state;
-    
+    const { settings } = useSettings();
+    const { groups, selectedGroupId, teamNotes = {}, coyoteTeamNotes = {}, grades, evaluations, attendance } = state;
+
     const [teamType, setTeamType] = useState<'base' | 'coyote'>('coyote');
     const [editingTeam, setEditingTeam] = useState<{ name: string; isCoyote: boolean } | null>(null);
     const [teamNote, setTeamNote] = useState('');
@@ -45,7 +47,7 @@ const TeamsView: React.FC = () => {
         const isCoyote = teamType === 'coyote';
         const teamMap = new Map<string, { student: Student; groupName: string }[]>();
         const unassignedList: { student: Student; groupName: string }[] = [];
-        
+
         const processedStudentNames = new Set<string>();
 
         const processStudent = (s: Student, gName: string) => {
@@ -84,16 +86,16 @@ const TeamsView: React.FC = () => {
 
         if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
-            teamsList = teamsList.filter(t => 
+            teamsList = teamsList.filter(t =>
                 t.name.toLowerCase().includes(term) ||
-                t.members.some(m => 
-                    m.student.name.toLowerCase().includes(term) || 
+                t.members.some(m =>
+                    m.student.name.toLowerCase().includes(term) ||
                     (m.student.nickname && m.student.nickname.toLowerCase().includes(term))
                 )
             );
         }
 
-        return { 
+        return {
             teams: teamsList.sort((a, b) => a.name.localeCompare(b.name)),
             unassigned: unassignedList
         };
@@ -178,7 +180,7 @@ const TeamsView: React.FC = () => {
 
         // 1. Guardar nota
         dispatch({ type: 'UPDATE_TEAM_NOTE', payload: { teamName: tName, note: createForm.note, isCoyote: isC } });
-        
+
         // 2. Asignar alumnos
         selectedStudentsForNewTeam.forEach(sid => {
             dispatch({ type: 'ASSIGN_STUDENT_TEAM', payload: { studentId: sid, teamName: tName, isCoyote: isC } });
@@ -225,7 +227,7 @@ const TeamsView: React.FC = () => {
 
     const handleAddMember = (studentId: string) => {
         if (!editingTeam) return;
-        
+
         // Validar límite Coyote
         if (editingTeam.isCoyote) {
             const currentCount = teams.find(t => t.name === editingTeam.name)?.members.length || 0;
@@ -254,8 +256,8 @@ const TeamsView: React.FC = () => {
 
     const generateTeams = () => {
         if (!selectedGroupId) {
-             dispatch({ type: 'ADD_TOAST', payload: { message: 'Selecciona un grupo para generar equipos.', type: 'error' } });
-             return;
+            dispatch({ type: 'ADD_TOAST', payload: { message: 'Selecciona un grupo para generar equipos.', type: 'error' } });
+            return;
         }
         const sizeInput = prompt("Tamaño máximo por equipo:", "5");
         if (sizeInput === null) return;
@@ -304,23 +306,23 @@ const TeamsView: React.FC = () => {
             <div className="bg-surface p-4 mb-6 rounded-2xl border border-border-color shadow-sm space-y-4 shrink-0">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex flex-wrap items-center gap-4">
-                        <select 
-                            value={selectedGroupId || ''} 
+                        <select
+                            value={selectedGroupId || ''}
                             onChange={(e) => dispatch({ type: 'SET_SELECTED_GROUP', payload: e.target.value })}
                             className="p-2 border-2 border-border-color rounded-xl bg-white text-sm font-bold focus:ring-2 focus:ring-primary min-w-[200px]"
                         >
                             <option value="" disabled>Selecciona un grupo</option>
                             {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                         </select>
-                        
+
                         <div className="bg-slate-100 p-1 rounded-xl flex border border-slate-200">
-                            <button 
+                            <button
                                 onClick={() => setTeamType('base')}
                                 className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${teamType === 'base' ? 'bg-white shadow text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 EQUIPO BASE
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setTeamType('coyote')}
                                 className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${teamType === 'coyote' ? 'bg-white shadow text-orange-600' : 'text-slate-500 hover:text-slate-700'}`}
                             >
@@ -332,9 +334,9 @@ const TeamsView: React.FC = () => {
                     <div className="flex gap-2 w-full md:w-auto items-center">
                         <div className="relative flex-1 md:w-48 lg:w-64">
                             <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input 
-                                type="text" 
-                                value={searchTerm} 
+                            <input
+                                type="text"
+                                value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                                 placeholder="Buscar equipo o alumno..."
                                 className="w-full pl-9 pr-3 py-2 border-2 border-border-color rounded-xl bg-white text-xs focus:ring-2 focus:ring-primary"
@@ -348,7 +350,7 @@ const TeamsView: React.FC = () => {
                         </Button>
                     </div>
                 </div>
-                
+
                 {teamType === 'coyote' && group && (
                     <div className="bg-orange-50 border border-orange-100 p-2 rounded-xl flex items-center gap-2">
                         <Icon name="info" className="w-4 h-4 text-orange-500 shrink-0" />
@@ -380,7 +382,7 @@ const TeamsView: React.FC = () => {
                                             <p className="text-xs font-black text-slate-700 truncate">{item.student.name}</p>
                                             <p className="text-[9px] font-bold text-slate-400 uppercase">[{item.groupName}] {item.student.nickname && `• "${item.student.nickname}"`}</p>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => markAsIndividual(item.student.id)}
                                             className="shrink-0 p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                                             title="Marcar como Trabajo Individual"
@@ -397,7 +399,7 @@ const TeamsView: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             <AnimatePresence>
                                 {teams.map((team) => (
-                                    <motion.div 
+                                    <motion.div
                                         layout
                                         key={team.name}
                                         initial={{ opacity: 0, scale: 0.9 }}
@@ -410,9 +412,9 @@ const TeamsView: React.FC = () => {
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">{team.members.length} INTEGRANTES</p>
                                             </div>
                                             <div className="flex gap-1">
-                                                <button onClick={() => handleOpenEdit(team.name, team.note)} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-primary hover:border-primary transition-all shadow-sm"><Icon name="edit-3" className="w-4 h-4"/></button>
+                                                <button onClick={() => handleOpenEdit(team.name, team.note)} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-primary hover:border-primary transition-all shadow-sm"><Icon name="edit-3" className="w-4 h-4" /></button>
                                                 {team.name !== INDIVIDUAL_WORK && (
-                                                    <button onClick={() => setConfirmDelete({ name: team.name, isCoyote: teamType === 'coyote' })} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm"><Icon name="trash-2" className="w-4 h-4"/></button>
+                                                    <button onClick={() => setConfirmDelete({ name: team.name, isCoyote: teamType === 'coyote' })} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm"><Icon name="trash-2" className="w-4 h-4" /></button>
                                                 )}
                                             </div>
                                         </div>
@@ -471,10 +473,10 @@ const TeamsView: React.FC = () => {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-[10px] font-black uppercase text-slate-500 mb-1 ml-1">Nombre del Equipo</label>
-                                        <input 
-                                            type="text" 
-                                            value={createForm.name} 
-                                            onChange={e => setCreateForm({...createForm, name: e.target.value})}
+                                        <input
+                                            type="text"
+                                            value={createForm.name}
+                                            onChange={e => setCreateForm({ ...createForm, name: e.target.value })}
                                             placeholder="Ej. Selección Coyote"
                                             className="w-full p-2.5 border-2 border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary transition-all font-bold"
                                         />
@@ -482,15 +484,15 @@ const TeamsView: React.FC = () => {
                                     <div>
                                         <label className="block text-[10px] font-black uppercase text-slate-500 mb-2 ml-1">Tipo de Asignación</label>
                                         <div className="grid grid-cols-2 gap-2">
-                                            <button 
-                                                onClick={() => setCreateForm({...createForm, isCoyote: false})}
+                                            <button
+                                                onClick={() => setCreateForm({ ...createForm, isCoyote: false })}
                                                 className={`p-2 rounded-xl text-xs font-bold border-2 transition-all ${!createForm.isCoyote ? 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-sm' : 'bg-white border-slate-200 text-slate-400'}`}
                                             >
                                                 Equipo Base
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => {
-                                                    setCreateForm({...createForm, isCoyote: true});
+                                                    setCreateForm({ ...createForm, isCoyote: true });
                                                     if (selectedStudentsForNewTeam.length > 4) {
                                                         setSelectedStudentsForNewTeam(selectedStudentsForNewTeam.slice(0, 4));
                                                     }
@@ -503,9 +505,9 @@ const TeamsView: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-black uppercase text-slate-500 mb-1 ml-1">Observaciones</label>
-                                        <textarea 
-                                            value={createForm.note} 
-                                            onChange={e => setCreateForm({...createForm, note: e.target.value})}
+                                        <textarea
+                                            value={createForm.note}
+                                            onChange={e => setCreateForm({ ...createForm, note: e.target.value })}
                                             rows={5}
                                             placeholder="Notas internas del equipo..."
                                             className="w-full p-2.5 border-2 border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary transition-all text-sm"
@@ -515,7 +517,7 @@ const TeamsView: React.FC = () => {
                             </div>
                         </div>
                         <div className="mt-auto pt-6 border-t border-slate-100">
-                             <div className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${createForm.isCoyote && selectedStudentsForNewTeam.length >= 4 ? 'bg-orange-50 border-orange-200' : 'bg-indigo-50 border-indigo-100'}`}>
+                            <div className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${createForm.isCoyote && selectedStudentsForNewTeam.length >= 4 ? 'bg-orange-50 border-orange-200' : 'bg-indigo-50 border-indigo-100'}`}>
                                 <div className={`${createForm.isCoyote && selectedStudentsForNewTeam.length >= 4 ? 'bg-orange-600' : 'bg-indigo-600'} text-white p-2 rounded-lg`}>
                                     <Icon name="users" className="w-5 h-5" />
                                 </div>
@@ -523,10 +525,10 @@ const TeamsView: React.FC = () => {
                                     <p className={`text-[10px] font-black uppercase leading-none ${createForm.isCoyote && selectedStudentsForNewTeam.length >= 4 ? 'text-orange-400' : 'text-indigo-400'}`}>Seleccionados</p>
                                     <p className={`text-sm font-black ${createForm.isCoyote && selectedStudentsForNewTeam.length >= 4 ? 'text-orange-700' : 'text-indigo-700'}`}>{selectedStudentsForNewTeam.length} / {createForm.isCoyote ? '4' : '∞'} Alumnos</p>
                                 </div>
-                             </div>
-                             {createForm.isCoyote && (
-                                 <p className="text-[9px] text-orange-600 font-bold mt-2 italic px-1">Límite de 4 alumnos para equipos Coyote.</p>
-                             )}
+                            </div>
+                            {createForm.isCoyote && (
+                                <p className="text-[9px] text-orange-600 font-bold mt-2 italic px-1">Límite de 4 alumnos para equipos Coyote.</p>
+                            )}
                         </div>
                     </div>
 
@@ -536,16 +538,16 @@ const TeamsView: React.FC = () => {
                             <h4 className="text-xs font-black uppercase text-slate-400 tracking-widest">Asignar Integrantes</h4>
                             <div className="relative w-64">
                                 <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <input 
-                                    type="text" 
-                                    value={createSearch} 
+                                <input
+                                    type="text"
+                                    value={createSearch}
                                     onChange={e => setCreateSearch(e.target.value)}
                                     placeholder="Buscar alumno..."
                                     className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-xl bg-white text-xs focus:ring-2 focus:ring-primary"
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2">
                             {availableStudentsForCreation.length > 0 ? (
                                 availableStudentsForCreation.map(p => {
@@ -554,8 +556,8 @@ const TeamsView: React.FC = () => {
                                     const isDisabled = !isSelected && createForm.isCoyote && selectedStudentsForNewTeam.length >= 4;
 
                                     return (
-                                        <div 
-                                            key={p.student.id} 
+                                        <div
+                                            key={p.student.id}
                                             onClick={() => !isDisabled && toggleStudentInNewTeam(p.student.id)}
                                             className={`p-3 rounded-2xl border-2 transition-all flex items-center justify-between group ${isSelected ? 'bg-primary/5 border-primary shadow-sm cursor-pointer' : isDisabled ? 'opacity-40 grayscale bg-slate-50 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 hover:border-slate-200 cursor-pointer'}`}
                                         >
@@ -586,7 +588,7 @@ const TeamsView: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
                     <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)}>Cancelar</Button>
                     <Button onClick={handleSaveCreate} className="px-8 shadow-lg shadow-primary/20">
@@ -635,9 +637,9 @@ const TeamsView: React.FC = () => {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-[10px] font-black uppercase text-slate-500 mb-1 ml-1">Nombre</label>
-                                        <input 
-                                            type="text" 
-                                            value={newTeamName} 
+                                        <input
+                                            type="text"
+                                            value={newTeamName}
                                             onChange={e => setNewTeamName(e.target.value)}
                                             disabled={editingTeam?.name === INDIVIDUAL_WORK}
                                             className="w-full p-2 border-2 border-slate-100 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary font-bold transition-all disabled:opacity-50"
@@ -645,8 +647,8 @@ const TeamsView: React.FC = () => {
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-black uppercase text-slate-500 mb-1 ml-1">Notas de Seguimiento</label>
-                                        <textarea 
-                                            value={teamNote} 
+                                        <textarea
+                                            value={teamNote}
                                             onChange={e => setTeamNote(e.target.value)}
                                             rows={3}
                                             className="w-full p-2 border-2 border-slate-100 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary text-sm transition-all"
@@ -666,7 +668,7 @@ const TeamsView: React.FC = () => {
                                                 <p className="text-xs font-bold text-slate-700 truncate uppercase">{m.student.name}</p>
                                                 {m.student.nickname && <p className="text-[9px] text-primary italic font-bold leading-none">"{m.student.nickname}"</p>}
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={() => handleRemoveMember(m.student.id)}
                                                 className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                                                 title="Remover del equipo"
@@ -689,16 +691,16 @@ const TeamsView: React.FC = () => {
                             <h4 className="text-xs font-black uppercase text-slate-400 tracking-widest">Agregar Alumnos</h4>
                             <div className="relative w-64">
                                 <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <input 
-                                    type="text" 
-                                    value={editSearch} 
+                                <input
+                                    type="text"
+                                    value={editSearch}
                                     onChange={e => setEditSearch(e.target.value)}
                                     placeholder="Buscar disponible..."
                                     className="w-full pl-9 pr-3 py-1.5 border border-slate-200 rounded-xl bg-white text-xs focus:ring-2 focus:ring-primary transition-all"
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-2">
                             {availableStudentsForEdit.length > 0 ? (
                                 availableStudentsForEdit.map(p => {
@@ -708,8 +710,8 @@ const TeamsView: React.FC = () => {
                                     const isDisabled = isCoyote && currentCount >= 4;
 
                                     return (
-                                        <div 
-                                            key={p.student.id} 
+                                        <div
+                                            key={p.student.id}
                                             className={`p-3 rounded-2xl border-2 transition-all flex items-center justify-between group ${isDisabled ? 'opacity-40 grayscale bg-slate-50 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-50 hover:border-slate-100'}`}
                                         >
                                             <div className="min-w-0">
@@ -725,7 +727,7 @@ const TeamsView: React.FC = () => {
                                                 </div>
                                             </div>
                                             {!isDisabled && (
-                                                <button 
+                                                <button
                                                     onClick={() => handleAddMember(p.student.id)}
                                                     className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-sm group-hover:scale-110"
                                                     title="Añadir al equipo"
@@ -745,7 +747,7 @@ const TeamsView: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
                     <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
                     <Button onClick={handleSaveEdit} className="px-8 shadow-lg shadow-primary/20">
