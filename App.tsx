@@ -41,8 +41,6 @@ const App: React.FC = () => {
   const notifiedClassesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    document.documentElement.classList.remove('dark');
-
     if ("Notification" in window) {
       if (Notification.permission === "default") {
         Notification.requestPermission().then(permission => {

@@ -66,25 +66,25 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer,
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 50, opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`relative z-10 w-full ${sizeClasses[size]} bg-surface rounded-3xl shadow-2xl flex flex-col max-h-[90vh] my-auto border border-white/20 overflow-hidden`}
+            className={`relative z-10 w-full ${sizeClasses[size]} bg-surface rounded-3xl shadow-2xl flex flex-col max-h-[90vh] my-auto border border-white/20 dark:border-slate-700/50 overflow-hidden text-slate-800 dark:text-slate-200`}
           >
-            <header className="flex items-center justify-between p-5 border-b border-slate-100 bg-white/50 shrink-0">
-              <h2 className="text-xl font-black text-slate-800 tracking-tight truncate pr-4 uppercase">{title}</h2>
+            <header className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 shrink-0">
+              <h2 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight truncate pr-4 uppercase">{title}</h2>
               <div className="flex items-center gap-2">
                 {headerActions && <div className="mr-2">{headerActions}</div>}
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-xl text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all focus:outline-none"
+                  className="p-2 rounded-xl text-slate-400 dark:text-slate-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-500 dark:hover:text-rose-400 transition-all focus:outline-none"
                 >
                   <Icon name="x" className="w-5 h-5" />
                 </button>
               </div>
             </header>
-            <div className="p-6 overflow-y-auto flex-grow custom-scrollbar bg-white/40">
+            <div className="p-6 overflow-y-auto flex-grow custom-scrollbar bg-white/40 dark:bg-slate-900/40">
               {children}
             </div>
             {footer && (
-              <footer className="flex justify-end p-5 border-t border-slate-100 bg-white/50 shrink-0">
+              <footer className="flex justify-end p-5 border-t border-slate-100 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50 shrink-0">
                 {footer}
               </footer>
             )}

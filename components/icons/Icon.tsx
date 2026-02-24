@@ -47,6 +47,8 @@ const ICONS: { [key: string]: React.ReactNode } = {
   footprints: <><path d="M4 16v-2.382a1 1 0 0 0-.553-.894l-1.236-.618A2 2 0 0 1 1.106 9.382L3.5 4.585A3 3 0 0 1 6.182 3H9a3 3 0 0 1 3 3v2" /><path d="M12 14v2.382a1 1 0 0 0 .553.894l1.236.618A2 2 0 0 1 14.894 20.618l-2.394 4.797A3 3 0 0 1 9.818 27H7a3 3 0 0 1-3-3v-2" /><circle cx="18" cy="7" r="1" /><circle cx="21" cy="9" r="1" /><circle cx="15" cy="11" r="1" /><circle cx="19" cy="13" r="1" /></>,
   shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>,
   user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>,
+  sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></>,
+  moon: <><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></>,
 };
 
 type IconProps = {

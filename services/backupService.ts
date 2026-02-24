@@ -1,9 +1,13 @@
 import { AppState } from '../types';
 
-export const exportBackup = (state: AppState) => {
+export const exportBackup = (state: AppState, settings?: any) => {
     try {
         // We remove toasts from the backup as they are transient state
         const stateToSave = { ...state, toasts: [] };
+        // If settings are provided, inject them into the export so they can be restored later
+        if (settings) {
+            (stateToSave as any).settings = settings;
+        }
         const dataStr = JSON.stringify(stateToSave, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -32,11 +36,14 @@ export const importBackup = (file: File): Promise<Partial<AppState>> => {
             try {
                 const result = event.target?.result as string;
                 const parsedData = JSON.parse(result);
-                // Basic validation: Check for essential keys
-                if (typeof parsedData === 'object' && parsedData !== null && 'groups' in parsedData && 'settings' in parsedData) {
+                // Security Validation: Rigorously check structure to prevent malformed or malicious objects
+                const hasObjectStructure = typeof parsedData === 'object' && parsedData !== null;
+                const hasValidGroups = hasObjectStructure && 'groups' in parsedData && Array.isArray(parsedData.groups);
+
+                if (hasValidGroups) {
                     resolve(parsedData);
                 } else {
-                    reject(new Error('El archivo de respaldo no tiene el formato esperado.'));
+                    reject(new Error('El archivo de respaldo no tiene el formato esperado o fue adulterado. Verifique que sea válido.'));
                 }
             } catch (error) {
                 reject(new Error('Error al leer el archivo de respaldo. Asegúrate de que es un archivo JSON válido.'));

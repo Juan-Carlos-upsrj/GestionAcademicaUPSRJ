@@ -131,6 +131,13 @@ export const pushState = async (req: Request, res: Response) => {
         // 1. Groups
         if (state.groups) {
             for (const group of state.groups) {
+                // Security Check: Ensure the user owns this group if it exists
+                const existingGroup = await prisma.group.findUnique({ where: { id: group.id } });
+                if (existingGroup && existingGroup.teacherId !== userId) {
+                    console.warn(`User ${userId} attempted to modify group ${group.id} belonging to teacher ${existingGroup.teacherId}`);
+                    continue; // Skip unauthorized modification
+                }
+
                 // Upsert Group
                 await prisma.group.upsert({
                     where: { id: group.id },
@@ -236,6 +243,12 @@ export const pushState = async (req: Request, res: Response) => {
         // Iterate through all groups in grades object
         if (state.grades) {
             for (const [_groupId, students] of Object.entries(state.grades)) {
+                // Security Check: Ensure the user owns this group before accepting grade updates
+                const groupVerify = await prisma.group.findUnique({ where: { id: _groupId } });
+                if (!groupVerify || groupVerify.teacherId !== userId) {
+                    continue;
+                }
+
                 for (const [studentId, evaluations] of Object.entries(students as any)) {
                     for (const [evalId, score] of Object.entries(evaluations as any)) {
                         if (score !== null) {
@@ -262,6 +275,12 @@ export const pushState = async (req: Request, res: Response) => {
         // 5. Attendance
         if (state.attendance) {
             for (const [_groupId, students] of Object.entries(state.attendance)) {
+                // Security Check: Ensure the user owns this group before accepting attendance updates
+                const groupVerify = await prisma.group.findUnique({ where: { id: _groupId } });
+                if (!groupVerify || groupVerify.teacherId !== userId) {
+                    continue;
+                }
+
                 for (const [studentId, dates] of Object.entries(students as any)) {
                     for (const [dateStr, status] of Object.entries(dates as any)) {
                         const date = new Date(dateStr);

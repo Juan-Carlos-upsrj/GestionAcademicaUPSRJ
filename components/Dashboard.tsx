@@ -67,8 +67,8 @@ const UpcomingEventsWidget: React.FC = () => {
                 const startDiff = diffInDays(startDate, today), endDiff = diffInDays(endDate, today);
                 const isOngoing = startDiff <= 0 && endDiff >= 0;
                 let colorClass = 'bg-surface-secondary/50 border border-border-color';
-                if (isOngoing && endDiff <= 2) colorClass = 'bg-accent-red-light border border-accent-red/30';
-                else if (!isOngoing && startDiff <= 7) colorClass = 'bg-accent-yellow-light border border-accent-yellow/30';
+                if (isOngoing && endDiff <= 2) colorClass = 'bg-accent-red-light dark:bg-rose-900/30 border border-accent-red/30 dark:border-rose-500/30';
+                else if (!isOngoing && startDiff <= 7) colorClass = 'bg-accent-yellow-light dark:bg-amber-900/30 border border-accent-yellow/30 dark:border-amber-500/30';
                 const dateString = startDate.getTime() === endDate.getTime() ? startDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : `${startDate.getDate()} - ${endDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`;
                 return (
                     <li key={event.id} className={`text-[11px] p-3 rounded-xl transition-all shadow-sm flex flex-col justify-center hover:shadow-md ${colorClass}`}>

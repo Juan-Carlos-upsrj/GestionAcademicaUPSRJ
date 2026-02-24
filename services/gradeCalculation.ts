@@ -3,7 +3,7 @@ import { getClassDates } from './dateUtils';
 
 export const getGradeColor = (grade: number | null): string => {
     if (grade === null) return '';
-    return grade >= 7 ? 'text-accent-green-dark' : grade >= 6 ? 'text-accent-yellow-dark' : 'text-accent-red';
+    return grade >= 7 ? 'text-accent-green-dark dark:text-emerald-400' : grade >= 6 ? 'text-accent-yellow-dark dark:text-amber-400' : 'text-accent-red dark:text-rose-400';
 };
 
 export const calculateAttendancePercentage = (
@@ -14,7 +14,7 @@ export const calculateAttendancePercentage = (
 ): number => {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    
+
     let start = settings.semesterStart;
     let end = settings.semesterEnd;
 
@@ -25,22 +25,22 @@ export const calculateAttendancePercentage = (
         p1End.setDate(p1End.getDate() + 1);
         start = p1End.toISOString().split('T')[0];
     }
-    
+
     const dates = getClassDates(start, end, group.classDays);
     if (dates.length === 0) return 100;
 
     let presentCount = 0;
     let totalCount = 0;
-    
+
     dates.forEach(date => {
         const status = (attendanceData[date] || AttendanceStatus.Pending) as AttendanceStatus;
-        
+
         // Contamos días pasados o días que ya tengan un registro explícito
         if (date <= todayStr || status !== AttendanceStatus.Pending) {
             totalCount++;
-            if (status === AttendanceStatus.Present || 
-                status === AttendanceStatus.Late || 
-                status === AttendanceStatus.Justified || 
+            if (status === AttendanceStatus.Present ||
+                status === AttendanceStatus.Late ||
+                status === AttendanceStatus.Justified ||
                 status === AttendanceStatus.Exchange) {
                 presentCount++;
             }
@@ -66,7 +66,7 @@ export const calculatePartialAverage = (
 
     types.forEach(type => {
         const weight = Number(type.weight) || 0;
-        
+
         if (type.isAttendance) {
             const attendancePct = calculateAttendancePercentage(group, partial, settings, studentAttendance);
             // Convertimos porcentaje (0-100) a nota (0-10) ponderada
@@ -114,19 +114,19 @@ export const calculateFinalGradeWithRecovery = (
     threshold: number = 80,
     failByAttendance: boolean = true
 ): { score: number | null; type: string; isFailing: boolean; attendanceStatus: 'ok' | 'risk' | 'fail' } => {
-    
+
     const tolerance = 5;
     const failThreshold = threshold - tolerance;
-    
+
     let attendanceStatus: 'ok' | 'risk' | 'fail' = 'ok';
     if (globalAttendancePct < failThreshold) {
         attendanceStatus = 'fail';
     } else if (globalAttendancePct < threshold) {
         attendanceStatus = 'risk';
     }
-    
+
     if (p1Avg === null && p2Avg === null) return { score: null, type: 'N/A', isFailing: false, attendanceStatus };
-    
+
     const effectiveP1 = remedialP1 !== null ? remedialP1 : (p1Avg ?? 0);
     const effectiveP2 = remedialP2 !== null ? remedialP2 : (p2Avg ?? 0);
 
@@ -147,10 +147,10 @@ export const calculateFinalGradeWithRecovery = (
     const isFailingByAttendance = failByAttendance && attendanceStatus === 'fail';
     const isFailing = isFailingByGrades || isFailingByAttendance;
 
-    return { 
-        score: finalScore, 
-        type: (attendanceStatus !== 'ok' && failByAttendance) ? `${type} (Asist.)` : type, 
-        isFailing, 
-        attendanceStatus 
+    return {
+        score: finalScore,
+        type: (attendanceStatus !== 'ok' && failByAttendance) ? `${type} (Asist.)` : type,
+        isFailing,
+        attendanceStatus
     };
 };

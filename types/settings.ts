@@ -14,7 +14,7 @@ export interface Settings {
     showTeamsInGrades: boolean;
     failByAttendance: boolean; // NUEVO: Determina si las faltas reprueban automáticamente
     sidebarGroupDisplayMode: SidebarGroupDisplayMode; // Replaces boolean
-    theme: 'classic' | 'dark';
+    theme: 'classic' | 'dark' | 'system';
     lowAttendanceThreshold: number;
     googleCalendarUrl: string;
     googleCalendarColor: string;

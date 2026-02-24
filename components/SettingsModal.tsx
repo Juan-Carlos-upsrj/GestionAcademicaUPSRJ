@@ -36,11 +36,11 @@ const ProgressCircle: React.FC<{ percent: number }> = ({ percent }) => {
                     stroke="currentColor" strokeWidth="6" fill="transparent"
                     strokeDasharray={circumference}
                     style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s ease-in-out' }}
-                    className="text-indigo-600"
+                    className="text-indigo-600 dark:text-indigo-400"
                     strokeLinecap="round"
                 />
             </svg>
-            <span className="absolute text-xs font-black text-indigo-700">{Math.round(percent)}%</span>
+            <span className="absolute text-xs font-black text-indigo-700 dark:text-indigo-300">{Math.round(percent)}%</span>
         </div>
     );
 };
@@ -117,7 +117,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         onClose();
     };
 
-    const handleExport = () => exportBackup(state);
+    const handleExport = () => exportBackup(state, settings);
     const handleImportClick = () => fileInputRef.current?.click();
 
     const handleCheckForUpdates = async () => {
@@ -141,6 +141,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             try {
                 const importedData = await importBackup(pendingImportFile);
                 dispatch({ type: 'SET_INITIAL_STATE', payload: importedData });
+
+                // Si el respaldo incluye configuraciones, debemos forzar su guardado
+                if ((importedData as any).settings) {
+                    saveGlobalSettings((importedData as any).settings);
+                }
+
                 dispatch({ type: 'ADD_TOAST', payload: { message: 'Importado con éxito.', type: 'success' } });
                 onClose();
             } catch (error) {
@@ -195,12 +201,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             >
                 <div className="flex h-[82vh] -m-6 overflow-hidden bg-background">
                     {/* MINI VENTANA IZQUIERDA (Acciones Rápidas ARRIBA + Navegación) */}
-                    <div className="w-64 bg-slate-50 dark:bg-slate-900 border-r border-border-color flex flex-col shrink-0">
+                    <div className="w-64 bg-slate-50 dark:bg-slate-800/50 border-r border-border-color flex flex-col shrink-0">
                         <div className="p-6 text-center border-b border-border-color">
                             <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-indigo-200 ring-4 ring-white">
                                 <span className="text-2xl font-black">{settings.professorName.charAt(0)}</span>
                             </div>
-                            <h3 className="font-bold text-slate-800 dark:text-slate-100 truncate text-sm px-2">
+                            <h3 className="font-bold text-slate-800 dark:text-slate-200 truncate text-sm px-2">
                                 {settings.professorName}
                             </h3>
                             <p className="text-[10px] text-indigo-500 font-black uppercase tracking-widest mt-1">Docente IAEV</p>
@@ -212,7 +218,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                         onClose();
                                     }
                                 }}
-                                className="mt-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 text-slate-500 rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center justify-center gap-2 mx-auto"
+                                className="mt-3 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 text-slate-500 dark:text-slate-400 rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center justify-center gap-2 mx-auto"
                             >
                                 <Icon name="log-out" className="w-3 h-3" />
                                 <span>Cerrar Sesión</span>
@@ -224,7 +230,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             <div className="space-y-4">
                                 <div>
                                     <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-2 ml-2">Inicio de Cuatri</p>
-                                    <button onClick={() => syncScheduleData(state, dispatch, settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-blue-100 shadow-sm">
+                                    <button onClick={() => syncScheduleData(state, dispatch, settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:text-blue-300 rounded-lg text-[10px] font-black transition-colors uppercase border border-blue-100 shadow-sm">
                                         <Icon name="calendar" className="w-3.5 h-3.5" /> Cargar Horario
                                     </button>
                                 </div>
@@ -232,10 +238,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                 <div>
                                     <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-2 ml-2">Sincronización Nube</p>
                                     <div className="space-y-2">
-                                        <button onClick={() => syncAttendanceData(state, dispatch, 'all', settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-indigo-100 shadow-sm">
+                                        <button onClick={() => syncAttendanceData(state, dispatch, 'all', settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 rounded-lg text-[10px] font-black transition-colors uppercase border border-indigo-100 shadow-sm">
                                             <Icon name="upload-cloud" className="w-3.5 h-3.5" /> Subir Asistencias
                                         </button>
-                                        <button onClick={() => syncGradesData(state, dispatch, settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-emerald-100 shadow-sm">
+                                        <button onClick={() => syncGradesData(state, dispatch, settings)} className="w-full flex items-center gap-2 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 rounded-lg text-[10px] font-black transition-colors uppercase border border-emerald-100 shadow-sm">
                                             <Icon name="graduation-cap" className="w-3.5 h-3.5" /> Subir Califics.
                                         </button>
                                     </div>
@@ -243,22 +249,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                                 <div>
                                     <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-2 ml-2">Fin de Cuatri</p>
-                                    <button onClick={() => setTransitionOpen(true)} className="w-full flex items-center gap-2 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[10px] font-black transition-colors uppercase border border-rose-100 shadow-sm">
+                                    <button onClick={() => setTransitionOpen(true)} className="w-full flex items-center gap-2 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:text-rose-300 rounded-lg text-[10px] font-black transition-colors uppercase border border-rose-100 shadow-sm">
                                         <Icon name="users" className="w-3.5 h-3.5" /> Asistente Fin Ciclo
                                     </button>
                                 </div>
                             </div>
 
                             {/* CATEGORÍA: NAVEGACIÓN */}
-                            <div className="pt-4 border-t border-slate-200">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-2">Secciones</p>
+                            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-2">Secciones</p>
                                 {navItems.filter(i => i.show !== false).map(item => (
                                     <button
                                         key={item.id}
                                         onClick={() => scrollToSection(item.id)}
                                         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeSection === item.id
-                                            ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm ring-1 ring-slate-200'
-                                            : 'text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'
+                                            ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200'
+                                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'
                                             }`}
                                     >
                                         <Icon name={item.icon} className="w-4 h-4" />
@@ -270,99 +276,99 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                         <div className="p-4 border-t border-border-color bg-slate-100/50">
                             <div className="flex gap-2">
-                                <button onClick={handleExport} className="flex-1 p-2 bg-white text-slate-600 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center shadow-sm" title="Exportar JSON"><Icon name="download-cloud" className="w-4 h-4" /></button>
-                                <button onClick={handleImportClick} className="flex-1 p-2 bg-white text-slate-600 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center shadow-sm" title="Importar JSON"><Icon name="upload-cloud" className="w-4 h-4" /></button>
+                                <button onClick={handleExport} className="flex-1 p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 transition-all flex items-center justify-center shadow-sm" title="Exportar JSON"><Icon name="download-cloud" className="w-4 h-4" /></button>
+                                <button onClick={handleImportClick} className="flex-1 p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 transition-all flex items-center justify-center shadow-sm" title="Importar JSON"><Icon name="upload-cloud" className="w-4 h-4" /></button>
                                 <input type="file" ref={fileInputRef} onChange={(e) => setPendingImportFile(e.target.files?.[0] || null)} accept=".json" className="hidden" />
                             </div>
-                            <p className="text-center font-black text-slate-400 text-[10px] mt-3">BUILD v{APP_VERSION}</p>
+                            <p className="text-center font-black text-slate-400 dark:text-slate-500 text-[10px] mt-3">BUILD v{APP_VERSION}</p>
                         </div>
                     </div>
 
                     {/* CONTENIDO DERECHA (Formularios en Rejilla de 2 Columnas) */}
-                    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white dark:bg-slate-900/20">
+                    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white dark:bg-slate-800">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12 content-start">
 
                             {/* SECCIÓN: PERIODO Y DOCENCIA */}
                             <section id="settings-sec-periodo" className="space-y-6 lg:col-span-2">
-                                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                    <Icon name="graduation-cap" className="w-5 h-5 text-indigo-600" />
-                                    <h4 className="text-sm font-black uppercase text-slate-400 tracking-widest">Periodo y Docencia</h4>
+                                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <Icon name="graduation-cap" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Periodo y Docencia</h4>
                                 </div>
 
-                                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 shadow-sm">
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 space-y-4 shadow-sm">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-[11px] font-black uppercase text-slate-400 ml-1 mb-1.5">Nombre del docente:</label>
-                                            <input type="text" name="professorName" value={settings.professorName} onChange={handleChange} className="w-full p-2.5 border-2 border-slate-200 rounded-xl bg-white text-sm font-black text-indigo-700" />
+                                            <label className="block text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1 mb-1.5">Nombre del docente:</label>
+                                            <input type="text" name="professorName" value={settings.professorName} onChange={handleChange} className="w-full p-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-black text-indigo-700 dark:text-indigo-300" />
                                         </div>
                                         <div>
-                                            <label className="block text-[11px] font-black uppercase text-slate-400 ml-1 mb-1.5">Inicio de Cuatrimestre:</label>
-                                            <input type="date" name="semesterStart" value={settings.semesterStart} onChange={handleChange} className="w-full p-2.5 border-2 border-slate-200 rounded-xl bg-white text-sm font-bold" />
+                                            <label className="block text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1 mb-1.5">Inicio de Cuatrimestre:</label>
+                                            <input type="date" name="semesterStart" value={settings.semesterStart} onChange={handleChange} className="w-full p-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-bold" />
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-sm">
-                                            <label className="block text-[11px] font-black uppercase text-indigo-600 ml-1 mb-2">Evaluación De primer parcial:</label>
+                                        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-100 dark:border-slate-700 shadow-sm">
+                                            <label className="block text-[11px] font-black uppercase text-indigo-600 dark:text-indigo-400 ml-1 mb-2">Evaluación De primer parcial:</label>
                                             <div className="flex items-center gap-2">
-                                                <input type="date" name="p1EvalStart" value={settings.p1EvalStart} onChange={handleChange} className="w-full p-2 border-2 border-slate-100 rounded-lg bg-slate-50 text-xs font-bold" />
-                                                <span className="text-slate-400 font-black">—</span>
-                                                <input type="date" name="p1EvalEnd" value={settings.p1EvalEnd} onChange={handleChange} className="w-full p-2 border-2 border-indigo-200 rounded-lg bg-indigo-50 text-xs font-black text-indigo-700" />
+                                                <input type="date" name="p1EvalStart" value={settings.p1EvalStart} onChange={handleChange} className="w-full p-2 border-2 border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-xs font-bold" />
+                                                <span className="text-slate-400 dark:text-slate-500 font-black">—</span>
+                                                <input type="date" name="p1EvalEnd" value={settings.p1EvalEnd} onChange={handleChange} className="w-full p-2 border-2 border-indigo-200 rounded-lg bg-indigo-50 text-xs font-black text-indigo-700 dark:text-indigo-300" />
                                             </div>
                                         </div>
-                                        <div className="p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-sm">
-                                            <label className="block text-[11px] font-black uppercase text-blue-600 ml-1 mb-2">Evaluación De Segundo Parcial:</label>
+                                        <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-100 dark:border-slate-700 shadow-sm">
+                                            <label className="block text-[11px] font-black uppercase text-blue-600 dark:text-blue-400 ml-1 mb-2">Evaluación De Segundo Parcial:</label>
                                             <div className="flex items-center gap-2">
-                                                <input type="date" name="p2EvalStart" value={settings.p2EvalStart} onChange={handleChange} className="w-full p-2 border-2 border-slate-100 rounded-lg bg-slate-50 text-xs font-bold" />
-                                                <span className="text-slate-400 font-black">—</span>
-                                                <input type="date" name="p2EvalEnd" value={settings.p2EvalEnd} onChange={handleChange} className="w-full p-2 border-2 border-blue-200 rounded-lg bg-blue-50 text-xs font-black text-blue-700" />
+                                                <input type="date" name="p2EvalStart" value={settings.p2EvalStart} onChange={handleChange} className="w-full p-2 border-2 border-slate-100 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-xs font-bold" />
+                                                <span className="text-slate-400 dark:text-slate-500 font-black">—</span>
+                                                <input type="date" name="p2EvalEnd" value={settings.p2EvalEnd} onChange={handleChange} className="w-full p-2 border-2 border-blue-200 rounded-lg bg-blue-50 text-xs font-black text-blue-700 dark:text-blue-300" />
                                             </div>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-black uppercase text-slate-400 ml-1 mb-1.5">Fin de Cuatrimestre:</label>
-                                        <input type="date" name="semesterEnd" value={settings.semesterEnd} onChange={handleChange} className="w-full p-2.5 border-2 border-slate-200 rounded-xl bg-white text-sm font-bold" />
+                                        <label className="block text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1 mb-1.5">Fin de Cuatrimestre:</label>
+                                        <input type="date" name="semesterEnd" value={settings.semesterEnd} onChange={handleChange} className="w-full p-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-bold" />
                                     </div>
                                 </div>
                             </section>
 
                             {/* SECCIÓN: NUBE */}
                             <section id="settings-sec-nube" className="space-y-4">
-                                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                    <Icon name="upload-cloud" className="w-5 h-5 text-indigo-600" />
-                                    <h4 className="text-sm font-black uppercase text-slate-400 tracking-widest">Conexión a la Nube</h4>
+                                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <Icon name="upload-cloud" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Conexión a la Nube</h4>
                                 </div>
-                                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 shadow-sm">
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 space-y-4 shadow-sm">
                                     <label className="block">
-                                        <span className="text-[10px] font-black uppercase text-slate-400 ml-1">URL api.php</span>
-                                        <input type="url" name="apiUrl" value={settings.apiUrl} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 rounded-xl bg-white text-sm font-bold" />
+                                        <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">URL api.php</span>
+                                        <input type="url" name="apiUrl" value={settings.apiUrl} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-bold" />
                                     </label>
                                     <label className="block">
-                                        <span className="text-[10px] font-black uppercase text-slate-400 ml-1">X-API-KEY</span>
-                                        <input type="password" name="apiKey" value={settings.apiKey} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 rounded-xl bg-white text-sm font-bold" />
+                                        <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">X-API-KEY</span>
+                                        <input type="password" name="apiKey" value={settings.apiKey} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-bold" />
                                     </label>
                                 </div>
                             </section>
 
                             {/* SECCIÓN: SISTEMA */}
                             <section id="settings-sec-sistema" className="space-y-4">
-                                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                    <Icon name="download-cloud" className="w-5 h-5 text-indigo-600" />
-                                    <h4 className="text-sm font-black uppercase text-slate-400 tracking-widest">Sistema</h4>
+                                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <Icon name="download-cloud" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Sistema</h4>
                                 </div>
 
-                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-6">
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-6">
                                     {isDownloading ? (
                                         <ProgressCircle percent={downloadPercent} />
                                     ) : (
-                                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center border-4 border-slate-100 shadow-inner shrink-0">
+                                        <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-slate-100 dark:border-slate-700 shadow-inner shrink-0">
                                             <Icon name="check-circle-2" className="w-8 h-8 text-emerald-500" />
                                         </div>
                                     )}
                                     <div className="flex-1">
-                                        <p className="font-black text-slate-800 dark:text-slate-100 uppercase text-[10px] tracking-wider mb-1">Actualización</p>
-                                        <p className="text-xs text-slate-500 mb-2 truncate">{updateStatus || 'Servidor disponible.'}</p>
+                                        <p className="font-black text-slate-800 dark:text-slate-200 uppercase text-[10px] tracking-wider mb-1">Actualización</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 truncate">{updateStatus || 'Servidor disponible.'}</p>
                                         <div className="flex gap-2">
                                             <Button size="sm" onClick={handleCheckForUpdates} disabled={isChecking || isDownloading} className="!py-1 !px-3 !text-xs">
                                                 {isChecking ? 'Verificando...' : 'Revisar Ahora'}
@@ -377,10 +383,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                     </div>
                                 </div>
                                 {!window.electronAPI && (
-                                    <div className="bg-slate-50 p-4 rounded-3xl border border-slate-200 mt-2 shadow-sm">
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 mt-2 shadow-sm">
                                         <label className="block">
-                                            <span className="text-[10px] font-black uppercase text-slate-400 ml-1">Repositorio GitHub</span>
-                                            <input type="url" name="mobileUpdateUrl" value={settings.mobileUpdateUrl} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 rounded-xl bg-white text-xs font-bold" />
+                                            <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Repositorio GitHub</span>
+                                            <input type="url" name="mobileUpdateUrl" value={settings.mobileUpdateUrl} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold" />
                                         </label>
                                     </div>
                                 )}
@@ -388,12 +394,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                             {/* SECCIÓN: CALENDARIO */}
                             <section id="settings-sec-calendario" className="space-y-4">
-                                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                    <Icon name="calendar" className="w-5 h-5 text-indigo-600" />
-                                    <h4 className="text-sm font-black uppercase text-slate-400 tracking-widest">Google Calendar</h4>
+                                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <Icon name="calendar" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Google Calendar</h4>
                                 </div>
-                                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 shadow-sm">
-                                    <input type="url" name="googleCalendarUrl" value={settings.googleCalendarUrl} onChange={handleChange} placeholder="https://calendar.google.com/..." className="w-full p-2.5 border-2 border-slate-100 rounded-xl bg-white text-xs font-bold" />
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 space-y-4 shadow-sm">
+                                    <input type="url" name="googleCalendarUrl" value={settings.googleCalendarUrl} onChange={handleChange} placeholder="https://calendar.google.com/..." className="w-full p-2.5 border-2 border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold" />
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {GROUP_COLORS.slice(0, 12).map(c => (
                                             <button key={c.name} onClick={() => setSettings(p => ({ ...p, googleCalendarColor: c.name }))} className={`w-7 h-7 rounded-full border-2 transition-all ${c.bg} ${settings.googleCalendarColor === c.name ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'opacity-40 hover:opacity-100'}`} />
@@ -404,36 +410,47 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                             {/* SECCIÓN: PREFERENCIAS */}
                             <section id="settings-sec-preferencias" className="space-y-4">
-                                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                    <Icon name="settings" className="w-5 h-5 text-indigo-600" />
-                                    <h4 className="text-sm font-black uppercase text-slate-400 tracking-widest">Preferencias</h4>
+                                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <Icon name="settings" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Preferencias</h4>
                                 </div>
-                                <div className="space-y-4 bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-sm">
+                                <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
                                     <div className="flex items-center justify-between">
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-slate-700">Reprobación por Faltas</span>
-                                            <span className="text-[9px] text-slate-400">¿Las bajas de asistencia reprueban al alumno?</span>
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Reprobación por Faltas</span>
+                                            <span className="text-[9px] text-slate-400 dark:text-slate-500">¿Las bajas de asistencia reprueban al alumno?</span>
                                         </div>
-                                        <input type="checkbox" name="failByAttendance" checked={settings.failByAttendance} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 border-2" />
+                                        <input type="checkbox" name="failByAttendance" checked={settings.failByAttendance} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 dark:text-indigo-400 border-2" />
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-slate-700">Mínimo de Asistencia (%)</span>
-                                            <span className="text-[9px] text-slate-400">Porcentaje para considerar baja académica.</span>
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Mínimo de Asistencia (%)</span>
+                                            <span className="text-[9px] text-slate-400 dark:text-slate-500">Porcentaje para considerar baja académica.</span>
                                         </div>
-                                        <input type="number" name="lowAttendanceThreshold" value={settings.lowAttendanceThreshold} onChange={handleChange} className="w-16 p-1.5 border-2 border-slate-200 rounded-xl bg-white text-xs font-bold text-center" />
+                                        <input type="number" name="lowAttendanceThreshold" value={settings.lowAttendanceThreshold} onChange={handleChange} className="w-16 p-1.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold text-center" />
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-slate-700">Matrícula en Tablas</span>
-                                        <input type="checkbox" name="showMatricula" checked={settings.showMatricula} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 border-2" />
+                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Matrícula en Tablas</span>
+                                        <input type="checkbox" name="showMatricula" checked={settings.showMatricula} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 dark:text-indigo-400 border-2" />
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-slate-700">Recordatorios de Clase</span>
-                                        <input type="checkbox" name="enableReminders" checked={settings.enableReminders} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 border-2" />
+                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Recordatorios de Clase</span>
+                                        <input type="checkbox" name="enableReminders" checked={settings.enableReminders} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 dark:text-indigo-400 border-2" />
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-slate-700">Anticipación (min)</span>
-                                        <input type="number" name="reminderTime" value={settings.reminderTime} onChange={handleChange} className="w-16 p-1.5 border-2 border-slate-200 rounded-xl bg-white text-xs font-bold text-center" />
+                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Anticipación (min)</span>
+                                        <input type="number" name="reminderTime" value={settings.reminderTime} onChange={handleChange} className="w-16 p-1.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold text-center" />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Tema Visual</span>
+                                            <span className="text-[9px] text-slate-400 dark:text-slate-500">Elige el aspecto de la aplicación.</span>
+                                        </div>
+                                        <select name="theme" value={settings.theme} onChange={handleChange} className="w-32 p-1.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                            <option value="system">Sistema</option>
+                                            <option value="classic">Claro</option>
+                                            <option value="dark">Oscuro</option>
+                                        </select>
                                     </div>
                                 </div>
                             </section>
@@ -441,19 +458,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             {/* SECCIÓN: HISTORIAL */}
                             {state.archives.length > 0 && (
                                 <section id="settings-sec-historial" className="space-y-4 lg:col-span-2">
-                                    <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                        <Icon name="list-checks" className="w-5 h-5 text-indigo-600" />
-                                        <h4 className="text-sm font-black uppercase text-slate-400 tracking-widest">Historial de Ciclos</h4>
+                                    <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                        <Icon name="list-checks" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                        <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Historial de Ciclos</h4>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {state.archives.map(archive => (
-                                            <div key={archive.id} className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between">
+                                            <div key={archive.id} className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm flex items-center justify-between">
                                                 <div className="min-w-0">
-                                                    <p className="text-xs font-black truncate text-slate-700 uppercase">{archive.name}</p>
-                                                    <p className="text-[9px] text-slate-400">{new Date(archive.dateArchived).toLocaleDateString()}</p>
+                                                    <p className="text-xs font-black truncate text-slate-700 dark:text-slate-300 uppercase">{archive.name}</p>
+                                                    <p className="text-[9px] text-slate-400 dark:text-slate-500">{new Date(archive.dateArchived).toLocaleDateString()}</p>
                                                 </div>
                                                 <div className="flex gap-1 shrink-0">
-                                                    <button onClick={() => setPendingRestoreArchive(archive)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Restaurar"><Icon name="upload-cloud" className="w-4 h-4" /></button>
+                                                    <button onClick={() => setPendingRestoreArchive(archive)} className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 rounded-lg transition-colors" title="Restaurar"><Icon name="upload-cloud" className="w-4 h-4" /></button>
                                                     <button onClick={() => setPendingDeleteArchive(archive)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Eliminar"><Icon name="trash-2" className="w-4 h-4" /></button>
                                                 </div>
                                             </div>
@@ -464,19 +481,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
                             {/* SECCIÓN: RESPALDO */}
                             <section id="settings-sec-respaldo" className="space-y-4 lg:col-span-2 mb-10">
-                                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                                    <Icon name="layout" className="w-5 h-5 text-indigo-600" />
-                                    <h4 className="text-sm font-black uppercase text-slate-400 tracking-widest">Seguridad de Datos</h4>
+                                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <Icon name="layout" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Seguridad de Datos</h4>
                                 </div>
                                 <div className="bg-rose-50 p-6 rounded-3xl border border-rose-100 shadow-sm space-y-4">
                                     <div className="flex flex-col sm:flex-row items-center gap-4">
                                         <div className="flex-1">
-                                            <p className="text-xs text-rose-800 font-bold mb-1">Manejo manual de datos</p>
-                                            <p className="text-[10px] text-rose-700/70">Exporta o importa el archivo maestro .JSON para transferir tu información.</p>
+                                            <p className="text-xs text-rose-800 dark:text-rose-300 font-bold mb-1">Manejo manual de datos</p>
+                                            <p className="text-[10px] text-rose-700 dark:text-rose-300/70">Exporta o importa el archivo maestro .JSON para transferir tu información.</p>
                                         </div>
                                         <div className="flex gap-2 w-full sm:w-auto">
-                                            <Button variant="secondary" onClick={handleExport} className="flex-1 bg-white text-slate-700 !py-2 !px-4 !text-xs shadow-sm border-slate-200 hover:border-indigo-300 transition-all"><Icon name="download-cloud" className="w-4 h-4" /> Exportar</Button>
-                                            <Button variant="secondary" onClick={handleImportClick} className="flex-1 bg-white text-slate-700 !py-2 !px-4 !text-xs shadow-sm border-slate-200 hover:border-indigo-300 transition-all"><Icon name="upload-cloud" className="w-4 h-4" /> Importar</Button>
+                                            <Button variant="secondary" onClick={handleExport} className="flex-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 !py-2 !px-4 !text-xs shadow-sm border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition-all"><Icon name="download-cloud" className="w-4 h-4" /> Exportar</Button>
+                                            <Button variant="secondary" onClick={handleImportClick} className="flex-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 !py-2 !px-4 !text-xs shadow-sm border-slate-200 dark:border-slate-700 hover:border-indigo-300 transition-all"><Icon name="upload-cloud" className="w-4 h-4" /> Importar</Button>
                                         </div>
                                     </div>
 
@@ -484,11 +501,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                     {window.electronAPI && (
                                         <div className="pt-4 border-t border-rose-200/50 flex flex-col sm:flex-row items-center gap-4">
                                             <div className="flex-1">
-                                                <p className="text-xs text-rose-800 font-bold mb-1">Recuperación de Emergencia</p>
-                                                <p className="text-[10px] text-rose-700/70">Busca datos de versiones anteriores instaladas en este equipo.</p>
+                                                <p className="text-xs text-rose-800 dark:text-rose-300 font-bold mb-1">Recuperación de Emergencia</p>
+                                                <p className="text-[10px] text-rose-700 dark:text-rose-300/70">Busca datos de versiones anteriores instaladas en este equipo.</p>
                                             </div>
                                             <div className="w-full sm:w-auto">
-                                                <Button variant="danger" onClick={() => setRecoveryOpen(true)} className="w-full !py-2 !px-4 !text-xs shadow-sm bg-rose-100 text-rose-700 hover:bg-rose-200 border-rose-200 transition-all">
+                                                <Button variant="danger" onClick={() => setRecoveryOpen(true)} className="w-full !py-2 !px-4 !text-xs shadow-sm bg-rose-100 text-rose-700 dark:text-rose-300 hover:bg-rose-200 border-rose-200 transition-all">
                                                     <Icon name="search" className="w-4 h-4 mr-2" /> Buscar versiones anteriores
                                                 </Button>
                                             </div>

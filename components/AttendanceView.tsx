@@ -87,65 +87,65 @@ const StickyHeader = () => {
 
     return (
         <div
-            className="absolute top-0 left-0 z-[100] bg-slate-50 border-b border-slate-300 shadow-sm"
+            className="absolute top-0 left-0 z-[100] bg-slate-50 dark:bg-slate-900 border-b border-slate-300 dark:border-slate-700 shadow-sm"
             style={{ width: totalWidth, height: HEADER_HEIGHT }}
         >
-            <div className="flex h-8 w-full border-b border-slate-300">
-                <div className="sticky left-0 z-[110] bg-slate-100 border-r border-slate-300 flex items-center px-2 font-bold text-[10px] text-slate-600 uppercase tracking-wider" style={{ width: nameColWidth }}>
+            <div className="flex h-8 w-full border-b border-slate-300 dark:border-slate-700">
+                <div className="sticky left-0 z-[110] bg-slate-100 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 flex items-center px-2 font-bold text-[10px] text-slate-600 dark:text-slate-400 uppercase tracking-wider" style={{ width: nameColWidth }}>
                     Periodo
                 </div>
                 {headerStructure.map((part: any, i: number) => (
-                    <div key={i} className="flex items-center justify-center border-r border-slate-300 bg-slate-200/50 font-bold text-[10px] text-slate-600 uppercase truncate px-1" style={{ width: part.width }}>
+                    <div key={i} className="flex items-center justify-center border-r border-slate-300 dark:border-slate-700 bg-slate-200/50 dark:bg-slate-800/80 font-bold text-[10px] text-slate-600 dark:text-slate-300 uppercase truncate px-1" style={{ width: part.width }}>
                         {part.label}
                     </div>
                 ))}
                 <div className="sticky right-0 z-[110] flex">
-                    <div className="bg-amber-50 border-l border-slate-300 flex items-center justify-center font-bold text-[10px] text-amber-700" style={{ width: STAT_COL_WIDTH * 2 }}>PARCIALES</div>
-                    <div className="bg-slate-100 border-l border-slate-300 flex items-center justify-center font-bold text-[10px] text-slate-700" style={{ width: STAT_COL_WIDTH }}>TOTAL</div>
+                    <div className="bg-amber-50 dark:bg-amber-900/40 border-l border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px] text-amber-700 dark:text-amber-400" style={{ width: STAT_COL_WIDTH * 2 }}>PARCIALES</div>
+                    <div className="bg-slate-100 dark:bg-slate-800 border-l border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px] text-slate-700 dark:text-slate-300" style={{ width: STAT_COL_WIDTH }}>TOTAL</div>
                 </div>
             </div>
 
-            <div className="flex h-8 w-full border-b border-slate-300">
-                <div className="sticky left-0 z-[110] bg-slate-100 border-r border-slate-300 flex items-center px-2 font-bold text-[10px] text-slate-600 uppercase" style={{ width: nameColWidth }}>
+            <div className="flex h-8 w-full border-b border-slate-300 dark:border-slate-700">
+                <div className="sticky left-0 z-[110] bg-slate-100 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-700 flex items-center px-2 font-bold text-[10px] text-slate-600 dark:text-slate-400 uppercase" style={{ width: nameColWidth }}>
                     Mes
                 </div>
                 {headerStructure.flatMap((part: any) => part.months.map((month: any, j: number) => (
-                    <div key={`${part.label}-${j}`} className="flex items-center justify-center border-r border-slate-300 bg-slate-50 font-semibold text-[9px] text-slate-500 uppercase truncate px-1" style={{ width: month.width }}>
+                    <div key={`${part.label}-${j}`} className="flex items-center justify-center border-r border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold text-[9px] text-slate-500 dark:text-slate-400 uppercase truncate px-1" style={{ width: month.width }}>
                         {month.label}
                     </div>
                 )))}
                 <div className="sticky right-0 z-[110] flex">
-                    <div className="bg-amber-50 border-l border-slate-300" style={{ width: STAT_COL_WIDTH * 2 }}></div>
-                    <div className="bg-slate-100 border-l border-slate-300" style={{ width: STAT_COL_WIDTH }}></div>
+                    <div className="bg-amber-50 dark:bg-amber-900/40 border-l border-slate-300 dark:border-slate-700" style={{ width: STAT_COL_WIDTH * 2 }}></div>
+                    <div className="bg-slate-100 dark:bg-slate-800 border-l border-slate-300 dark:border-slate-700" style={{ width: STAT_COL_WIDTH }}></div>
                 </div>
             </div>
 
-            <div className="flex h-8 w-full">
-                <div className="sticky left-0 z-[110] bg-white border-r border-slate-300 flex items-center px-2" style={{ width: nameColWidth }}>
-                    <span className="font-bold text-[11px] sm:text-sm text-slate-700">Alumno</span>
+            <div className="flex h-8 w-full border-b border-transparent dark:border-slate-700">
+                <div className="sticky left-0 z-[110] bg-white dark:bg-slate-900 border-r border-slate-300 dark:border-slate-700 flex items-center px-2" style={{ width: nameColWidth }}>
+                    <span className="font-bold text-[11px] sm:text-sm text-slate-700 dark:text-slate-200">Alumno</span>
                 </div>
                 {classDates.map(date => {
                     const isToday = date === todayStr;
                     const d = new Date(date + 'T00:00:00');
                     return (
-                        <div key={date} className={`flex flex-col items-center justify-center border-r border-slate-200 flex-shrink-0 ${isToday ? 'bg-blue-100 text-blue-700' : 'bg-white text-slate-600'}`} style={{ width: DATE_COL_WIDTH }}>
+                        <div key={date} className={`flex flex-col items-center justify-center border-r border-slate-200 dark:border-slate-700 flex-shrink-0 ${isToday ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400'}`} style={{ width: DATE_COL_WIDTH }}>
                             <span className="text-[10px] leading-none font-bold">{d.getDate()}</span>
                             <span className="text-[8px] leading-none uppercase">{d.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', '')}</span>
                         </div>
                     );
                 })}
                 <div className="sticky right-0 z-[110] flex">
-                    <div className="bg-amber-50 border-l border-slate-300 flex flex-col items-center justify-center text-[8px] font-bold text-amber-800" style={{ width: STAT_COL_WIDTH }}>
+                    <div className="bg-amber-50 dark:bg-amber-900/40 border-l border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-[8px] font-bold text-amber-800 dark:text-amber-400" style={{ width: STAT_COL_WIDTH }}>
                         <span>{labelPrefix} P1</span>
-                        <span className="text-[7px] opacity-70">({isNaN(globalP1Avg) ? '-' : globalP1Avg}%)</span>
+                        <span className="text-[7px] opacity-70 dark:opacity-60">({isNaN(globalP1Avg) ? '-' : globalP1Avg}%)</span>
                     </div>
-                    <div className="bg-sky-50 border-l border-slate-300 flex flex-col items-center justify-center text-[8px] font-bold text-sky-800" style={{ width: STAT_COL_WIDTH }}>
+                    <div className="bg-sky-50 dark:bg-sky-900/40 border-l border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-[8px] font-bold text-sky-800 dark:text-sky-400" style={{ width: STAT_COL_WIDTH }}>
                         <span>{labelPrefix} P2</span>
-                        <span className="text-[7px] opacity-70">({isNaN(globalP2Avg) ? '-' : globalP2Avg}%)</span>
+                        <span className="text-[7px] opacity-70 dark:opacity-60">({isNaN(globalP2Avg) ? '-' : globalP2Avg}%)</span>
                     </div>
-                    <div className="bg-slate-100 border-l border-slate-300 flex flex-col items-center justify-center text-[8px] font-bold text-slate-800" style={{ width: STAT_COL_WIDTH }}>
+                    <div className="bg-slate-100 dark:bg-slate-800 border-l border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-[8px] font-bold text-slate-800 dark:text-slate-300" style={{ width: STAT_COL_WIDTH }}>
                         <span>Global</span>
-                        <span className="text-[7px] opacity-70">({isNaN(globalTotalAvg) ? '-' : globalTotalAvg}%)</span>
+                        <span className="text-[7px] opacity-70 dark:opacity-60">({isNaN(globalTotalAvg) ? '-' : globalTotalAvg}%)</span>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@ const Row = React.memo(({ index, style }: ListChildComponentProps) => {
     const isBaja = global.absences > limits.global;
     const isRisk = !isBaja && ((isCurrentP1 && p1.absences > limits.p1) || (isCurrentP2 && p2.absences > limits.p2));
 
-    const getScoreColor = (pct: number) => pct >= threshold ? 'text-emerald-600 bg-emerald-50' : pct >= 70 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
+    const getScoreColor = (pct: number) => pct >= threshold ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10' : pct >= 70 ? 'text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/10' : 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/10';
 
     const formatValue = (stat: { percent: number, absences: number }) => {
         return displayMode === 'percent' ? `${stat.percent}%` : stat.absences;
@@ -194,21 +194,21 @@ const Row = React.memo(({ index, style }: ListChildComponentProps) => {
 
     return (
         <div
-            className={`flex items-center border-b border-slate-200 transition-colors box-border ${isBaja ? 'bg-rose-50 dark:bg-rose-900/10 hover:bg-rose-100/50' : isRisk ? 'bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/50' : 'bg-white hover:bg-blue-50/30'}`}
+            className={`flex items-center border-b border-slate-200 dark:border-slate-800 transition-colors box-border ${isBaja ? 'bg-rose-50 dark:bg-rose-900/10 hover:bg-rose-100/50 dark:hover:bg-rose-900/20' : isRisk ? 'bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/50 dark:hover:bg-amber-900/20' : 'bg-white dark:bg-slate-900 hover:bg-blue-50/30 dark:hover:bg-blue-900/20'}`}
             style={{ ...style, top, height: ROW_HEIGHT, width: totalWidth, zIndex: 1 }}
         >
             <div
-                className={`sticky left-0 z-[50] border-r border-slate-300 flex items-center px-2 h-full ${isBaja ? 'bg-rose-100' : isRisk ? 'bg-amber-100' : 'bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]'}`}
+                className={`sticky left-0 z-[50] border-r border-slate-300 dark:border-slate-700 flex items-center px-2 h-full ${isBaja ? 'bg-rose-100 dark:bg-rose-900/30' : isRisk ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-white dark:bg-slate-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] dark:shadow-none'}`}
                 style={{ width: nameColWidth }}
             >
                 <div className="truncate w-full relative z-10 flex flex-col">
                     <div className="flex items-center">
                         <span className="text-[10px] font-black text-slate-400 mr-1 w-4 inline-block text-right">{index + 1}.</span>
-                        <span className={`font-bold text-[11px] sm:text-xs truncate ${isBaja ? 'text-rose-700' : isRisk ? 'text-amber-700' : 'text-slate-800'}`}>{student.name}</span>
+                        <span className={`font-bold text-[11px] sm:text-xs truncate ${isBaja ? 'text-rose-700 dark:text-rose-400' : isRisk ? 'text-amber-700 dark:text-amber-500' : 'text-slate-800 dark:text-slate-200'}`}>{student.name}</span>
                         {isBaja ? (
-                            <span className="ml-2 text-[8px] bg-rose-600 text-white px-1.5 py-0.5 rounded-full font-black shadow-sm">BAJA</span>
+                            <span className="ml-2 text-[8px] bg-rose-600 dark:bg-rose-700 text-white px-1.5 py-0.5 rounded-full font-black shadow-sm">BAJA</span>
                         ) : isRisk ? (
-                            <span className="ml-2 text-[8px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-black shadow-sm">RIESGO</span>
+                            <span className="ml-2 text-[8px] bg-amber-500 dark:bg-amber-600 text-white px-1.5 py-0.5 rounded-full font-black shadow-sm">RIESGO</span>
                         ) : null}
                     </div>
                     {student.nickname && <span className="text-[9px] text-primary italic font-bold ml-5 leading-none mt-0.5 truncate">"{student.nickname}"</span>}
@@ -230,22 +230,22 @@ const Row = React.memo(({ index, style }: ListChildComponentProps) => {
                 return (
                     <div
                         key={date}
-                        className={`flex items-center justify-center border-r border-slate-200 h-full cursor-pointer select-none relative z-0 ${date === todayStr ? 'bg-blue-50/30' : ''} ${isSelected ? '!bg-blue-100 ring-1 ring-blue-400 ring-inset' : ''}`}
+                        className={`flex items-center justify-center border-r border-slate-200 dark:border-slate-800 h-full cursor-pointer select-none relative z-0 ${date === todayStr ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''} ${isSelected ? '!bg-blue-100 dark:!bg-blue-900/50 ring-1 ring-blue-400 dark:ring-blue-500 ring-inset' : ''}`}
                         style={{ width: DATE_COL_WIDTH }}
                         onMouseDown={() => onMouseDown(index, colIndex)}
                         onMouseEnter={() => onMouseEnter(index, colIndex)}
                     >
-                        <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold transition-transform ${STATUS_STYLES[status].color} ${isFocused ? 'ring-2 ring-primary ring-offset-1 scale-110 z-10' : ''}`}>
+                        <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold transition-transform ${STATUS_STYLES[status].color} ${isFocused ? 'ring-2 ring-primary ring-offset-1 dark:ring-offset-slate-900 scale-110 z-10' : ''}`}>
                             {STATUS_STYLES[status].symbol}
                         </div>
                     </div>
                 );
             })}
 
-            <div className="sticky right-0 z-[50] flex h-full shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                <div className={`border-l border-slate-300 flex items-center justify-center text-[10px] font-black ${getScoreColor(p1.percent)}`} style={{ width: STAT_COL_WIDTH }}>{formatValue(p1)}</div>
-                <div className={`border-l border-slate-300 flex items-center justify-center text-[10px] font-black ${getScoreColor(p2.percent)}`} style={{ width: STAT_COL_WIDTH }}>{formatValue(p2)}</div>
-                <div className={`border-l border-slate-300 flex items-center justify-center text-[10px] font-black ${getScoreColor(global.percent)}`} style={{ width: STAT_COL_WIDTH }}>{formatValue(global)}</div>
+            <div className="sticky right-0 z-[50] flex h-full shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-none">
+                <div className={`border-l border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black ${getScoreColor(p1.percent)}`} style={{ width: STAT_COL_WIDTH }}>{formatValue(p1)}</div>
+                <div className={`border-l border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black ${getScoreColor(p2.percent)}`} style={{ width: STAT_COL_WIDTH }}>{formatValue(p2)}</div>
+                <div className={`border-l border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black ${getScoreColor(global.percent)}`} style={{ width: STAT_COL_WIDTH }}>{formatValue(global)}</div>
             </div>
         </div>
     );
@@ -583,7 +583,7 @@ const AttendanceView: React.FC = () => {
             </div>
 
             {group && isReady ? (
-                <div className="flex-1 border border-border-color rounded-xl overflow-hidden bg-white shadow-sm min-h-[200px] relative z-0">
+                <div className="flex-1 border border-border-color rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm min-h-[200px] relative z-0">
                     {/* BARRA FLOTANTE DE LLENADO MASIVO ASISTENCIA */}
                     <AnimatePresence>
                         {selection.start && selection.end && !selection.isDragging && (Math.abs(selection.start.r - selection.end.r) > 0 || selection.start.c !== selection.end.c) && (

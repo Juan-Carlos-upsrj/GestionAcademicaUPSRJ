@@ -25,7 +25,7 @@ const defaultSettings: Settings = {
     showTeamsInGrades: true,
     failByAttendance: true,
     sidebarGroupDisplayMode: 'name-abbrev',
-    theme: 'classic',
+    theme: 'system',
     lowAttendanceThreshold: 80,
     googleCalendarUrl: '',
     googleCalendarColor: 'blue',
@@ -46,8 +46,23 @@ const defaultSettingsContext: SettingsContextType = {
 export const SettingsContext = createContext<SettingsContextType>(defaultSettingsContext);
 export const useSettings = () => useContext(SettingsContext);
 
+const SETTINGS_CACHE_KEY = 'app_settings_cache';
+
+const getInitialSettings = (): Settings => {
+    try {
+        const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            return { ...defaultSettings, ...parsed };
+        }
+    } catch (e) {
+        console.error("Failed to parse settings cache", e);
+    }
+    return defaultSettings;
+};
+
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [settings, setSettings] = useState<Settings>(defaultSettings);
+    const [settings, setSettings] = useState<Settings>(getInitialSettings);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -56,7 +71,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 const dataProvider = new CompositeDataProvider();
                 const loadedState = await dataProvider.load() as any;
                 if (loadedState && loadedState.settings) {
-                    setSettings({ ...defaultSettings, ...loadedState.settings });
+                    const mergedSettings = { ...defaultSettings, ...loadedState.settings };
+                    setSettings(mergedSettings);
+                    localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(mergedSettings));
                 }
             } catch (error) {
                 console.error("Error loading settings:", error);
@@ -70,11 +87,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const updateSettings = async (newSettings: Partial<Settings>) => {
         const updated = { ...settings, ...newSettings };
         setSettings(updated);
+        localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(updated));
+
         try {
             const dataProvider = new CompositeDataProvider();
             const currentState = await dataProvider.load();
             if (currentState) {
-                const newState = { ...currentState, settings: updated };
+                const newState = { ...currentState, settings: updated } as any;
                 await dataProvider.save(newState);
             }
         } catch (error) {
