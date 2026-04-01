@@ -7,11 +7,13 @@ import ThemeInitializer from '../ThemeInitializer';
 import BackgroundShapesV2 from '../common/BackgroundShapesV2';
 import ToastContainer from '../ToastContainer';
 import { useSettings } from '../../context/SettingsContext';
+import { useAutoSync } from '../../hooks/useAutoSync';
 
 const MainLayout: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const location = useLocation();
     const { settings, updateSettings } = useSettings();
+    useAutoSync();
 
     const toggleTheme = () => {
         const nextTheme = settings.theme === 'dark' ? 'classic' : 'dark';
