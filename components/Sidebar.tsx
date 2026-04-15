@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import { useSettings } from '../context/SettingsContext';
 import { SidebarGroupDisplayMode } from '../types';
@@ -40,6 +40,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useLocalStorage('sidebarCollapsed', false);
+  const [displayVersion, setDisplayVersion] = useState(APP_VERSION);
+
+  useEffect(() => {
+    // If in Electron, get the actual version from the main process
+    if (window.electronAPI) {
+      window.electronAPI.getVersion().then(version => {
+        if (version) setDisplayVersion(version);
+      });
+    }
+  }, []);
 
   const sortedGroups = useMemo(() => {
     return [...groups].sort((a, b) => parseQ(a.quarter) - parseQ(b.quarter) || a.name.localeCompare(b.name));
@@ -255,7 +265,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           {!isCollapsed && (
             <div className="pt-2 flex flex-col items-center">
               <span className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Versión Ecosistema</span>
-              <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full mt-1 border border-primary/20">v{APP_VERSION}</span>
+              <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full mt-1 border border-primary/20">v{displayVersion}</span>
             </div>
           )}
         </div>

@@ -40,56 +40,55 @@ const getRepoInfo = (url: string) => {
     return null;
 };
 
-export const checkForMobileUpdate = async (repoUrl: string, currentVersion: string): Promise<MobileUpdateInfo | null> => {
-    if (!repoUrl) return null;
-
-    const repoInfo = getRepoInfo(repoUrl);
-    if (!repoInfo) {
-        console.warn("La URL proporcionada no es un repositorio de GitHub válido.");
-        return null;
-    }
-
-    const apiUrl = `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/releases/latest`;
+export const checkForMobileUpdate = async (updateUrl: string, currentVersion: string): Promise<MobileUpdateInfo | null> => {
+    if (!updateUrl) return null;
 
     try {
-        console.log(`Checking GitHub Releases API: ${apiUrl}`);
-        const response = await fetch(apiUrl, { 
-            headers: { 'Accept': 'application/vnd.github.v3+json' },
-            cache: 'no-cache' 
-        });
+        const repoInfo = getRepoInfo(updateUrl);
+        let latestVersion = "";
+        let downloadUrl = "";
+        let notes = "";
 
-        if (!response.ok) {
-            throw new Error(`GitHub API Error: ${response.status}`);
+        if (repoInfo) {
+            const apiUrl = `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/releases/latest`;
+            console.log(`Checking GitHub Releases API: ${apiUrl}`);
+            const response = await fetch(apiUrl, { 
+                headers: { 'Accept': 'application/vnd.github.v3+json' },
+                cache: 'no-cache' 
+            });
+
+            if (!response.ok) throw new Error(`GitHub API Error: ${response.status}`);
+            const data = await response.json();
+
+            if (!data.tag_name) throw new Error("No tag_name found in release data");
+            
+            latestVersion = data.tag_name;
+            const apkAsset = data.assets?.find((asset: any) => asset.name.endsWith('.apk'));
+            downloadUrl = apkAsset ? apkAsset.browser_download_url : data.html_url;
+            notes = data.body || "Nueva versión disponible en GitHub."
+        } else {
+            // Custom JSON Server Endpoint
+            console.log(`Checking custom JSON endpoint: ${updateUrl}`);
+            const timestamp = new Date().getTime();
+            const cacheBustedUrl = updateUrl + (updateUrl.includes('?') ? '&' : '?') + 't=' + timestamp;
+            const response = await fetch(cacheBustedUrl, { cache: 'no-store' });
+
+            if (!response.ok) throw new Error(`API Custom Error: ${response.status}`);
+            const data = await response.json();
+
+            if (!data.version || !data.url) throw new Error("Formato JSON de server inválido");
+            latestVersion = data.version;
+            downloadUrl = data.url;
+            notes = data.notes || "Nueva versión del sistema disponible.";
         }
 
-        const data = await response.json();
-
-        // Data structure from GitHub Releases API:
-        // {
-        //   "tag_name": "v1.0.61",
-        //   "html_url": "https://github.com/...",
-        //   "body": "Release notes...",
-        //   "assets": [ { "name": "app-release.apk", "browser_download_url": "..." } ]
-        // }
-
-        if (!data.tag_name) {
-            throw new Error("No tag_name found in release data");
-        }
-
-        const latestVersion = data.tag_name;
         const isNewer = compareVersions(latestVersion, currentVersion) > 0;
 
         if (isNewer) {
-            // Try to find an APK asset
-            const apkAsset = data.assets?.find((asset: any) => asset.name.endsWith('.apk'));
-            
-            // If APK exists, use its direct download link. If not, use the release page URL.
-            const downloadUrl = apkAsset ? apkAsset.browser_download_url : data.html_url;
-
             return {
                 version: cleanVersion(latestVersion),
                 url: downloadUrl,
-                notes: data.body || "Nueva versión disponible en GitHub Releases."
+                notes: notes
             };
         }
 

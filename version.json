@@ -1,5 +1,5 @@
 {
-  "version": "3.3.22",
-  "url": "https://github.com/Juan-Carlos-upsrj/TestListas/releases/download/v3.3.22/app-debug.apk",
-  "notes": "Versión 3.3.22 estable restaurada. Se eliminaron las funcionalidades de Google Classroom para asegurar compatibilidad total en el entorno local de escritorio sin errores de protocolo."
+  "version": "3.4.13",
+  "url": "https://github.com/Juan-Carlos-upsrj/TestListas/releases/download/v3.4.13/app-debug.apk",
+  "notes": "Versión 3.4.13 estable. Solución definitiva para bloqueos del instalador mediante cierre forzado en etapa inicial."
 }

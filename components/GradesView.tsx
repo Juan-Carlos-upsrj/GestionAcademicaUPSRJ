@@ -17,6 +17,7 @@ import { useGradesManager, GRADE_REMEDIAL_P1, GRADE_REMEDIAL_P2, GRADE_EXTRA, GR
 import EvaluationForm from './grades/EvaluationForm';
 import OrdinaryGradesTable from './grades/OrdinaryGradesTable';
 import RecoveryGradesTable from './grades/RecoveryGradesTable';
+import { syncGamesPointsForGroup } from '../services/gamesPointsService';
 
 interface Coords { r: number; c: string; } // c es evaluationId
 
@@ -298,6 +299,26 @@ const GradesView: React.FC = () => {
         }
     };
 
+    const handleSyncGamesExtra = async () => {
+        if (!group) return;
+        try {
+            dispatch({ type: 'ADD_TOAST', payload: { message: 'Sincronizando puntos GAMES...', type: 'info' } });
+            const results = await syncGamesPointsForGroup(settings, group, filteredStudents);
+            if (results.length === 0) {
+                dispatch({ type: 'ADD_TOAST', payload: { message: 'Sin resultados de puntos GAMES para este grupo.', type: 'info' } });
+                return;
+            }
+            let applied = 0;
+            for (const row of results) {
+                handleGradeChange(row.studentId, GRADE_EXTRA, row.extraCalculated.toString());
+                applied++;
+            }
+            dispatch({ type: 'ADD_TOAST', payload: { message: `Puntos GAMES aplicados a ${applied} alumnos en EXTRA.`, type: 'success' } });
+        } catch (error) {
+            dispatch({ type: 'ADD_TOAST', payload: { message: 'Error al sincronizar puntos GAMES. Revisa Configuración.', type: 'error' } });
+        }
+    };
+
     return (
         <ErrorBoundary>
             <div className="flex flex-col h-full overflow-hidden" onMouseUp={onMouseUp}>
@@ -339,6 +360,9 @@ const GradesView: React.FC = () => {
                                     </>
                                 )}
                                 <Button variant="secondary" size="sm" onClick={() => setCopyModalOpen(true)}><Icon name="copy" className="w-4 h-4" /><span className="hidden lg:inline ml-1">Copiar Tareas</span></Button>
+                                <Button variant="secondary" size="sm" onClick={handleSyncGamesExtra} className="bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100">
+                                    <Icon name="star" className="w-4 h-4" /><span className="hidden lg:inline ml-1">Puntos GAMES</span>
+                                </Button>
                                 <Button variant="secondary" size="sm" onClick={() => setImageModalOpen(true)}><Icon name="camera" className="w-4 h-4" /></Button>
                                 <Button variant="secondary" size="sm" onClick={() => setGroupConfigOpen(true)}><Icon name="settings" className="w-4 h-4" /></Button>
                                 <Button size="sm" onClick={() => { setEditingEvaluation(undefined); setEvalModalOpen(true); }}><Icon name="plus" className="w-4 h-4" /> <span className="hidden sm:inline ml-1">Nueva Evaluación</span></Button>

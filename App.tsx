@@ -22,6 +22,8 @@ import ChangelogModal from './components/ChangelogModal';
 
 import CommandPalette from './components/common/CommandPalette';
 import StudentProfileModal from './components/StudentProfileModal';
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 const normalizeStr = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -41,6 +43,10 @@ const App: React.FC = () => {
   const notifiedClassesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      GoogleAuth.initialize();
+    }
+
     if ("Notification" in window) {
       if (Notification.permission === "default") {
         Notification.requestPermission().then(permission => {

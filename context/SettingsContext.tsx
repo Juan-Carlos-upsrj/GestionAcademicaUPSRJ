@@ -32,9 +32,14 @@ const defaultSettings: Settings = {
     professorName: 'Nombre del Profesor',
     apiUrl: '',
     apiKey: '',
-    mobileUpdateUrl: 'https://github.com/Juan-Carlos-upsrj/TestListas',
+    gamesApiUrl: '',
+    gamesApiKey: '',
+    mobileUpdateUrl: 'https://gestionacademica.tailaf0046.ts.net/descarga/mobile_update.json',
     enableReminders: true,
     reminderTime: 20,
+    enableAutoSync: true,
+    autoSyncInterval: 24,
+    lastSyncTimestamp: 0,
 };
 
 const defaultSettingsContext: SettingsContextType = {

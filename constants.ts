@@ -2,7 +2,19 @@ import { AttendanceStatus, DayOfWeek, MotivationalQuote, Professor } from './typ
 
 // Manual version control for the web/mobile app
 // New format: 3.3.X (Standard SemVer to avoid Electron errors)
-export const APP_VERSION = '3.3.60';
+export const APP_VERSION = '3.4.22';
+export const APP_NAME = 'Gestión Docente UPSRJ';
+
+export const SYSTEM_API_URL = 'https://gestionacademica.tailaf0046.ts.net/coordinacion/api/sync.php';
+export const SYSTEM_API_KEY = 'UPSRJ_2025_SECURE_SYNC';
+export const GAMES_API_URL = 'https://gestionacademica.tailaf0046.ts.net/iaev/games';
+export const GAMES_API_KEY = 'iaev_games_secret_2026_upsrj';
+
+export const UPDATE_MANIFEST = {
+  "version": "3.4.22",
+  "url": "https://github.com/Juan-Carlos-upsrj/TestListas/releases/download/v3.4.22/app-debug.apk",
+  "notes": "Versión 3.4.22 estable. Corrección del suicidio del instalador por wildcards (se excluye el nombre del installer)."
+};
 
 export const DAYS_OF_WEEK: DayOfWeek[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 

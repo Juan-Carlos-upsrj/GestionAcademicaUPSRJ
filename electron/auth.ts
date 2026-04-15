@@ -38,15 +38,24 @@ export async function startGoogleLogin() {
         // or just pass it in the callback url.
         // Better: Define the logic inside listen callback and move handler logic there or allow handler to access "redirectUri" variable.
 
-        server.listen(0, '127.0.0.1', async () => {
-            const address = server.address();
-            if (!address || typeof address === 'string') {
-                reject(new Error('Failed to get server address'));
-                return;
-            }
+        const AUTH_PORT = 3000;
+        // El servidor ya fue creado arriba en la línea 11
 
-            const port = (address as AddressInfo).port;
-            const redirectUri = `http://127.0.0.1:${port}/callback`;
+        server.on('error', (err: any) => {
+            if (err.code === 'EADDRINUSE') {
+                log.error(`Port ${AUTH_PORT} is in use. Check for other instances of the app or services.`);
+                BrowserWindow.getAllWindows().forEach(win => {
+                    win.webContents.send('auth:google-callback-result', { 
+                        success: false, 
+                        error: `El puerto ${AUTH_PORT} está ocupado por otra aplicación. Por favor, ciérrala e intenta de nuevo.` 
+                    });
+                });
+                reject(new Error(`Port ${AUTH_PORT} busy`));
+            }
+        });
+
+        server.listen(AUTH_PORT, 'localhost', async () => {
+            const redirectUri = `http://localhost:${AUTH_PORT}/callback`;
 
             // Update the request handler to use this redirectUri
             server.removeAllListeners('request');
@@ -59,7 +68,7 @@ export async function startGoogleLogin() {
                         const code = reqUrl.query.code as string;
 
                         if (code) {
-                            res.writeHead(200, { 'Content-Type': 'text/html' });
+                            res.writeHead(200, { 'Content-Type': 'text/html; charset=UTF-8' });
                             res.end('<h1>Login exitoso!</h1><p>Puedes cerrar esta pestaña y volver a la aplicación.</p><script>window.close()</script>');
                             server.close();
 
@@ -73,6 +82,7 @@ export async function startGoogleLogin() {
                                 });
                                 resolve(user);
                             } catch (err: any) {
+                                log.error('Error processing code:', err);
                                 BrowserWindow.getAllWindows().forEach(win => {
                                     win.webContents.send('auth:google-callback-result', { success: false, error: err.message });
                                 });
@@ -81,7 +91,7 @@ export async function startGoogleLogin() {
                         }
                     }
                 } catch (error) {
-                    log.error('Error in auth server:', error);
+                    log.error('Error in auth server request handling:', error);
                 }
             });
 

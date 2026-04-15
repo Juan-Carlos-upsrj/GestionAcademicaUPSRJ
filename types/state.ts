@@ -48,6 +48,7 @@ export interface AppState {
     tutorshipData: { [studentId: string]: TutorshipEntry }; // NUEVO
     groupTutors: { [groupId: string]: string }; // NUEVO: Almacena quién es el tutor de cada grupo
     currentUser: User | null; // NUEVO
+    syncedGroupsToday: string[]; // NUEVO: Grupos que ya sincronizaron hoy en el servidor
 }
 
 export interface GroupReportSummary {
@@ -93,4 +94,5 @@ export type AppAction =
     | { type: 'SET_TUTORSHIP_DATA_BULK'; payload: { [studentId: string]: TutorshipEntry } } // NUEVO
     | { type: 'SET_GROUP_TUTORS_BULK'; payload: { [groupId: string]: string } } // NUEVO
     | { type: 'SET_GROUP_TUTOR'; payload: { groupId: string; tutorName: string } } // NUEVO
-    | { type: 'SET_USER'; payload: User | null }; // NUEVO
+    | { type: 'SET_USER'; payload: User | null } // NUEVO
+    | { type: 'SET_SYNCED_GROUPS_TODAY'; payload: string[] }; // NUEVO

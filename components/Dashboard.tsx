@@ -13,6 +13,7 @@ import { syncAttendanceData } from '../services/syncService';
 import Button from './common/Button';
 import SemesterTransitionModal from './SemesterTransitionModal';
 import TeacherScheduleModal from './dashboard/TeacherScheduleModal';
+import BajasDropdown from './dashboard/BajasDropdown';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -135,7 +136,19 @@ const QuickActionsWidget: React.FC = () => {
                 className="w-full shadow-lg"
             >
                 <Icon name="upload-cloud" className="w-5 h-5" />
-                <span className="truncate font-black">Sincronizar Hoy</span>
+                <div className="flex flex-col items-start min-w-0">
+                    <span className="truncate font-black text-sm">Sincronizar Hoy</span>
+                    <span className="text-[9px] opacity-70 font-bold uppercase">Solo registros de hoy</span>
+                </div>
+            </Button>
+            <Button
+                onClick={() => syncAttendanceData(state, dispatch, 'all', settings)}
+                variant="secondary"
+                size="sm"
+                className="w-full border-2 border-indigo-100 hover:border-indigo-300"
+            >
+                <Icon name="history" className="w-4 h-4" />
+                <span className="truncate font-bold text-xs uppercase">Sincronizar Todo</span>
             </Button>
         </div>
     );
@@ -194,11 +207,11 @@ const Dashboard: React.FC = () => {
 
     // Balanced grid layout for 3 columns
     const layouts = {
-        lg: [{ i: 'welcome', x: 0, y: 0, w: 2, h: 1 }, { i: 'quick-actions', x: 2, y: 0, w: 1, h: 1 }, { i: 'take-attendance', x: 0, y: 1, w: 2, h: 2 }, { i: 'combined-overview', x: 2, y: 1, w: 1, h: 3 }, { i: 'upcoming-events', x: 0, y: 3, w: 2, h: 1 }],
-        md: [{ i: 'welcome', x: 0, y: 0, w: 2, h: 1 }, { i: 'quick-actions', x: 2, y: 0, w: 1, h: 1 }, { i: 'take-attendance', x: 0, y: 1, w: 2, h: 2 }, { i: 'combined-overview', x: 2, y: 1, w: 1, h: 3 }, { i: 'upcoming-events', x: 0, y: 3, w: 2, h: 1 }],
-        sm: [{ i: 'welcome', x: 0, y: 0, w: 2, h: 1 }, { i: 'quick-actions', x: 0, y: 1, w: 2, h: 1 }, { i: 'take-attendance', x: 0, y: 2, w: 2, h: 2 }, { i: 'combined-overview', x: 0, y: 4, w: 2, h: 2 }, { i: 'upcoming-events', x: 0, y: 6, w: 2, h: 1 }],
-        xs: [{ i: 'welcome', x: 0, y: 0, w: 1, h: 1 }, { i: 'quick-actions', x: 0, y: 1, w: 1, h: 1 }, { i: 'take-attendance', x: 0, y: 2, w: 1, h: 2 }, { i: 'combined-overview', x: 0, y: 4, w: 1, h: 2 }, { i: 'upcoming-events', x: 0, y: 6, w: 1, h: 1 }],
-        xxs: [{ i: 'welcome', x: 0, y: 0, w: 1, h: 1 }, { i: 'quick-actions', x: 0, y: 1, w: 1, h: 1 }, { i: 'take-attendance', x: 0, y: 2, w: 1, h: 2 }, { i: 'combined-overview', x: 0, y: 4, w: 1, h: 2 }, { i: 'upcoming-events', x: 0, y: 6, w: 1, h: 1 }],
+        lg: [{ i: 'welcome', x: 0, y: 0, w: 2, h: 1 }, { i: 'quick-actions', x: 2, y: 0, w: 1, h: 2 }, { i: 'take-attendance', x: 0, y: 1, w: 2, h: 2 }, { i: 'combined-overview', x: 2, y: 2, w: 1, h: 2 }, { i: 'upcoming-events', x: 0, y: 3, w: 2, h: 1 }],
+        md: [{ i: 'welcome', x: 0, y: 0, w: 2, h: 1 }, { i: 'quick-actions', x: 2, y: 0, w: 1, h: 2 }, { i: 'take-attendance', x: 0, y: 1, w: 2, h: 2 }, { i: 'combined-overview', x: 2, y: 2, w: 1, h: 2 }, { i: 'upcoming-events', x: 0, y: 3, w: 2, h: 1 }],
+        sm: [{ i: 'welcome', x: 0, y: 0, w: 2, h: 1 }, { i: 'quick-actions', x: 0, y: 1, w: 2, h: 2 }, { i: 'take-attendance', x: 0, y: 3, w: 2, h: 2 }, { i: 'combined-overview', x: 0, y: 5, w: 2, h: 2 }, { i: 'upcoming-events', x: 0, y: 7, w: 2, h: 1 }],
+        xs: [{ i: 'welcome', x: 0, y: 0, w: 1, h: 1 }, { i: 'quick-actions', x: 0, y: 1, w: 1, h: 2 }, { i: 'take-attendance', x: 0, y: 3, w: 1, h: 2 }, { i: 'combined-overview', x: 0, y: 5, w: 1, h: 2 }, { i: 'upcoming-events', x: 0, y: 7, w: 1, h: 1 }],
+        xxs: [{ i: 'welcome', x: 0, y: 0, w: 1, h: 1 }, { i: 'quick-actions', x: 0, y: 1, w: 1, h: 2 }, { i: 'take-attendance', x: 0, y: 3, w: 1, h: 2 }, { i: 'combined-overview', x: 0, y: 5, w: 1, h: 2 }, { i: 'upcoming-events', x: 0, y: 7, w: 1, h: 1 }],
     };
 
     return (
@@ -222,6 +235,7 @@ const Dashboard: React.FC = () => {
             </ResponsiveGridLayout>
 
             {/* BOTÓN FLOTANTE HORARIO (ESQUINA INFERIOR DERECHA) */}
+            <BajasDropdown />
             <motion.button
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}

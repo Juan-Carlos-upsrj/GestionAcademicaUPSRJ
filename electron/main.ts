@@ -124,7 +124,7 @@ if (!gotTheLock) {
       }
 
       if (!isDev) {
-        // autoUpdater.checkForUpdatesAndNotify();
+        autoUpdater.checkForUpdatesAndNotify();
       }
     });
 
@@ -153,10 +153,6 @@ if (!gotTheLock) {
     // Cleanup on closed
     mainWindow.on('closed', () => {
       mainWindow = null;
-      // NUCLEAR OPTION: Force exit immediately when main window closes
-      if (process.platform !== 'darwin') {
-        process.exit(0);
-      }
     });
   };
 
@@ -213,7 +209,9 @@ if (!gotTheLock) {
     ipcMain.handle('get-data', () => readData());
     ipcMain.handle('save-data', (_, data: AppState) => writeData(data));
     ipcMain.handle('get-version', () => app.getVersion());
-    ipcMain.on('restart_app', () => autoUpdater.quitAndInstall());
+    ipcMain.on('restart_app', () => {
+      autoUpdater.quitAndInstall(true, true);
+    });
     ipcMain.on('check_for_updates', () => { if (!isDev) autoUpdater.checkForUpdates(); });
 
     // Auth Handlers
@@ -372,8 +370,6 @@ if (!gotTheLock) {
       return null;
     });
 
-    createWindow();
-
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
@@ -384,14 +380,12 @@ if (!gotTheLock) {
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-      app.exit(0);
+      app.quit();
     }
   });
 
   app.on('before-quit', () => {
-    // Ensure all windows are destroyed
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.destroy();
-    }
+    // Release the single instance lock before quitting
+    app.releaseSingleInstanceLock();
   });
 }

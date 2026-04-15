@@ -174,7 +174,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
     const navItems = [
         { id: 'periodo', label: 'Periodo y Docencia', icon: 'graduation-cap' },
-        { id: 'nube', label: 'Conexión Nube', icon: 'upload-cloud' },
         { id: 'sistema', label: 'Actualización', icon: 'download-cloud' },
         { id: 'calendario', label: 'Google Calendar', icon: 'calendar' },
         { id: 'historial', label: 'Historial', icon: 'list-checks', show: state.archives.length > 0 },
@@ -333,8 +332,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                 </div>
                             </section>
 
-                            {/* SECCIÓN: NUBE */}
-                            <section id="settings-sec-nube" className="space-y-4">
+                            {/* SECCIÓN: NUBE (OCULTA POR SEGURIDAD Y UX) */}
+                            <section id="settings-sec-nube" className="hidden">
                                 <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
                                     <Icon name="upload-cloud" className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                     <h4 className="text-sm font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">Conexión a la Nube</h4>
@@ -348,6 +347,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                         <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">X-API-KEY</span>
                                         <input type="password" name="apiKey" value={settings.apiKey} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-bold" />
                                     </label>
+                                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                                        <p className="text-[10px] font-black uppercase text-indigo-500 tracking-widest mb-2">Integración IAEV GAMES</p>
+                                        <label className="block mb-2">
+                                            <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">URL API GAMES (sin /api)</span>
+                                            <input type="url" name="gamesApiUrl" value={settings.gamesApiUrl} onChange={handleChange} placeholder="https://.../iaev/games/api" className="mt-1 w-full p-2.5 border-2 border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-bold" />
+                                        </label>
+                                        <label className="block">
+                                            <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">X-API-KEY GAMES</span>
+                                            <input type="password" name="gamesApiKey" value={settings.gamesApiKey} onChange={handleChange} className="mt-1 w-full p-2.5 border-2 border-slate-100 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-sm font-bold" />
+                                        </label>
+                                    </div>
                                 </div>
                             </section>
 
@@ -441,6 +451,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Anticipación (min)</span>
                                         <input type="number" name="reminderTime" value={settings.reminderTime} onChange={handleChange} className="w-16 p-1.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold text-center" />
                                     </div>
+                                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">Auto-Sincronización</span>
+                                            <span className="text-[9px] text-slate-400 dark:text-slate-500">Subir datos automáticamente a la nube.</span>
+                                        </div>
+                                        <input type="checkbox" name="enableAutoSync" checked={settings.enableAutoSync} onChange={handleChange} className="h-5 w-10 rounded-full text-indigo-600 dark:text-indigo-400 border-2" />
+                                    </div>
+                                    {settings.enableAutoSync && (
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Intervalo (Horas)</span>
+                                                <span className="text-[9px] text-slate-400 dark:text-slate-500">¿Cada cuántas horas sincronizar?</span>
+                                            </div>
+                                            <input type="number" name="autoSyncInterval" value={settings.autoSyncInterval} onChange={handleChange} min="1" className="w-16 p-1.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-xs font-bold text-center" />
+                                        </div>
+                                    )}
                                     <div className="flex items-center justify-between">
                                         <div className="flex flex-col">
                                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Tema Visual</span>

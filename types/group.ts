@@ -16,6 +16,8 @@ export interface Group {
         partial2: EvaluationType[];
     };
     classroomCourseId?: string; // ID del curso de Google Classroom vinculado
+    docente_confianza_id?: string;
+    lista_oficial_cargada?: boolean;
 }
 
 export interface TeacherClass {

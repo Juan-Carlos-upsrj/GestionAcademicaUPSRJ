@@ -1,8 +1,8 @@
 {
   "name": "gestion-academica-iaev",
-  "version": "3.4.1",
+  "version": "3.4.22",
   "description": "Aplicacion de escritorio para gestion academica.",
-  "author": "Kakit",
+  "author": "UPSRJ",
   "main": "dist-electron/main.js",
   "repository": {
     "type": "git",
@@ -91,6 +91,19 @@
           "url": "https://gestionacademica.tailaf0046.ts.net/coordinacion/updates/"
         }
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "displayLanguageSelector": true,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "createStartMenuShortcut": true,
+      "createDesktopShortcut": "always",
+      "shortcutName": "Gestión Docente UPSRJ",
+      "include": "build/installer.nsh"
     },
     "mac": {
       "icon": "public/logo.png",

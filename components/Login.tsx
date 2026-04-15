@@ -6,6 +6,8 @@ import Icon from './icons/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 const Login: React.FC = () => {
     const { dispatch } = useContext(AppContext);
@@ -43,12 +45,12 @@ const Login: React.FC = () => {
                     const googleUser = {
                         username: result.user.email.split('@')[0],
                         name: result.user.name,
-                        careerId: result.user.careerId || 'iaev', // Default or derived?
+                        careerId: result.user.careerId?.toLowerCase() || 'iaev', // Now using the one from the database if available
                         email: result.user.email,
                         googleId: result.user.googleId,
                         picture: result.user.picture,
-                        accessToken: result.user.tokens?.access_token, // Store access token for API calls
-                        tokens: result.user.tokens // Store full tokens object for refresh logic
+                        accessToken: result.user.tokens?.access_token,
+                        tokens: result.user.tokens
                     };
 
                     dispatch({ type: 'SET_USER', payload: googleUser });
@@ -180,7 +182,31 @@ const Login: React.FC = () => {
 
                     <button
                         type="button"
-                        onClick={() => (window as any).electronAPI.startGoogleLogin()}
+                        onClick={async () => {
+                            if (Capacitor.isNativePlatform()) {
+                                try {
+                                    const result = await GoogleAuth.signIn();
+                                    if (result && result.email) {
+                                        const googleUser = {
+                                            username: result.email.split('@')[0],
+                                            name: result.name || result.givenName,
+                                            careerId: (result as any).careerId || 'iaev', 
+                                            email: result.email,
+                                            googleId: result.id,
+                                            picture: result.imageUrl,
+                                            accessToken: result.authentication.accessToken,
+                                            tokens: result.authentication
+                                        };
+                                        dispatch({ type: 'SET_USER', payload: googleUser });
+                                        navigate(from, { replace: true });
+                                    }
+                                } catch (err) {
+                                    setError('Error en Google Auth NAT: ' + JSON.stringify(err));
+                                }
+                            } else {
+                                (window as any).electronAPI?.startGoogleLogin();
+                            }
+                        }}
                         className="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm mb-4"
                     >
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />

@@ -8,6 +8,7 @@ import BackgroundShapesV2 from '../common/BackgroundShapesV2';
 import ToastContainer from '../ToastContainer';
 import { useSettings } from '../../context/SettingsContext';
 import { useAutoSync } from '../../hooks/useAutoSync';
+import AvisosBajas from '../common/AvisosBajas';
 
 const MainLayout: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -41,6 +42,7 @@ const MainLayout: React.FC = () => {
 
             {/* Notifications and Modals would logically go here or in a global provider */}
             <ToastContainer />
+            <AvisosBajas />
 
             <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 

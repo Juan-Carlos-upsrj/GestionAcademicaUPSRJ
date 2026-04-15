@@ -1,6 +1,6 @@
-export const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || '816047293325-c6e9j4bubji15p160e6cjsq9bcv5v9ic.apps.googleusercontent.com';
-export const GOOGLE_CLIENT_SECRET = process.env.VITE_GOOGLE_CLIENT_SECRET || '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';
-export const GOOGLE_REDIRECT_URI = 'gestion-docente://auth/callback';
+export const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || '';
+export const GOOGLE_CLIENT_SECRET = process.env.VITE_GOOGLE_CLIENT_SECRET || '';
+export const GOOGLE_REDIRECT_URI = 'http://localhost:3000/callback';
 
 // Whitelist of allowed emails (Check disabled in auth.ts)
 export const ALLOWED_EMAILS = [

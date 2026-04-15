@@ -21,9 +21,15 @@ export interface Settings {
     professorName: string;
     apiUrl: string;
     apiKey: string;
+    gamesApiUrl: string;
+    gamesApiKey: string;
     mobileUpdateUrl: string; // URL for version.json
     enableReminders: boolean;
     reminderTime: number;
+    // Auto-sync settings
+    enableAutoSync: boolean;
+    autoSyncInterval: number; // In hours
+    lastSyncTimestamp: number;
 }
 
 export interface Professor {

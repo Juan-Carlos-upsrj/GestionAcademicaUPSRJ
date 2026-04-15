@@ -4,6 +4,8 @@ import { GROUP_COLORS } from '../constants';
 import { CompositeDataProvider } from '../services/dataProvider/CompositeDataProvider';
 import { getClassDates } from '../services/dateUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { useSettings } from './SettingsContext';
+import { syncAttendanceData } from '../services/syncService';
 
 const defaultState: AppState = {
     groups: [],
@@ -23,6 +25,7 @@ const defaultState: AppState = {
 
     groupTutors: {},
     currentUser: null,
+    syncedGroupsToday: [],
 };
 
 const appReducer = (state: AppState, action: AppAction): AppState => {
@@ -115,7 +118,8 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
                 teacherSchedule: loadedState.teacherSchedule ?? [],
                 tutorshipData: loadedState.tutorshipData ?? {},
                 groupTutors: loadedState.groupTutors ?? {},
-                currentUser: loadedState.currentUser || null, // Allow loading user from state
+                currentUser: loadedState.currentUser || null,
+                syncedGroupsToday: [], // Siempre inicia vacío al cargar
             };
         }
         case 'SET_VIEW': return { ...state, activeView: action.payload };
@@ -253,6 +257,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         case 'SET_GROUP_TUTORS_BULK': return { ...state, groupTutors: { ...state.groupTutors, ...action.payload } };
         case 'SET_GROUP_TUTOR': return { ...state, groupTutors: { ...state.groupTutors, [action.payload.groupId]: action.payload.tutorName } };
         case 'SET_USER': return { ...state, currentUser: action.payload };
+        case 'SET_SYNCED_GROUPS_TODAY': return { ...state, syncedGroupsToday: action.payload };
         default: return state;
     }
 };
@@ -310,13 +315,42 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         loadState();
     }, [dataProvider]);
 
+    const { settings, updateSettings } = useSettings();
+    const [isAutoSyncing, setIsAutoSyncing] = useState(false);
+
     useEffect(() => {
-        if (!isInitialized) return;
-        const timeoutId = setTimeout(() => {
-            dataProvider.save(state).catch(err => console.error("Failed to save state:", err));
-        }, 1000);
-        return () => clearTimeout(timeoutId);
-    }, [state, isInitialized, dataProvider]);
+        if (!isInitialized || !settings.enableAutoSync || !settings.apiUrl) return;
+
+        const checkAndSync = async () => {
+            if (isAutoSyncing) return;
+
+            const now = Date.now();
+            const lastSync = settings.lastSyncTimestamp || 0;
+            const intervalMs = settings.autoSyncInterval * 60 * 60 * 1000;
+
+            if (now - lastSync >= intervalMs) {
+                console.log("Iniciando auto-sincronización (Intervalo: " + settings.autoSyncInterval + "h)...");
+                setIsAutoSyncing(true);
+                try {
+                    await syncAttendanceData(state, dispatch, 'all', settings);
+                    updateSettings({ lastSyncTimestamp: Date.now() });
+                    dispatch({ type: 'ADD_TOAST', payload: { message: 'Sincronización automática completada', type: 'success' } });
+                } catch (e) {
+                    console.error("Error en auto-sincronización:", e);
+                } finally {
+                    setIsAutoSyncing(false);
+                }
+            }
+        };
+
+        // Verificar cada 5 minutos si es tiempo de sincronizar
+        const intervalId = setInterval(checkAndSync, 5 * 60 * 1000);
+        
+        // También verificar al cargar
+        checkAndSync();
+
+        return () => clearInterval(intervalId);
+    }, [isInitialized, settings.enableAutoSync, settings.autoSyncInterval, settings.apiUrl, isAutoSyncing]);
 
     if (!isInitialized) return null;
 

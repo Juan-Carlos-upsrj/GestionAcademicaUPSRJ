@@ -1,5 +1,4 @@
-// ID ACTUALIZADO SEGÚN TU CAPTURA:
-export const GOOGLE_CLIENT_ID = '749366523850-nlrq43947vkk7bg0mvhop5p3pcmcriup.apps.googleusercontent.com';
+export const GOOGLE_CLIENT_ID = '767265465776-8niav477563870tl4ug3emv6lcb12fe1.apps.googleusercontent.com';
 
 const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly https://www.googleapis.com/auth/classroom.coursework.students.readonly https://www.googleapis.com/auth/classroom.rosters.readonly';
 

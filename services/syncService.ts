@@ -2,8 +2,8 @@ import { AppState, AppAction, DayOfWeek, AttendanceStatus, TutorshipEntry, Group
 import { Dispatch } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchHorarioCompleto } from './horarioService';
-import { GROUP_COLORS } from '../constants';
 import { calculatePartialAverage } from './gradeCalculation';
+import { SYSTEM_API_URL, SYSTEM_API_KEY, GROUP_COLORS } from '../constants';
 
 // Función para normalizar texto de forma agresiva para comparaciones exitosas
 export const normalizeForMatch = (s: string) =>
@@ -15,11 +15,11 @@ export const normalizeForMatch = (s: string) =>
         .trim();
 
 const checkSettings = (settings: Settings, dispatch: Dispatch<AppAction>): boolean => {
-    const { apiUrl, apiKey, professorName } = settings;
-    if (!apiUrl || !apiKey || !professorName.trim() || professorName.trim() === 'Nombre del Profesor') {
+    const { professorName } = settings;
+    if (!professorName.trim() || professorName.trim() === 'Nombre del Profesor') {
         dispatch({
             type: 'ADD_TOAST',
-            payload: { message: 'Configura la URL, API Key y tu nombre de profesor.', type: 'error' }
+            payload: { message: 'Configura tu nombre de profesor en el Perfil.', type: 'error' }
         });
         return false;
     }
@@ -39,7 +39,7 @@ const getBaseApiUrl = (apiUrl: string): URL => {
 export const syncAttendanceData = async (state: AppState, dispatch: Dispatch<AppAction>, syncScope: 'today' | 'all', settings: Settings) => {
     if (!checkSettings(settings, dispatch)) return;
     const { attendance, groups } = state;
-    const { apiUrl, apiKey, professorName } = settings;
+    const { professorName } = settings;
     const trimmedProfessorName = professorName.trim();
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -47,12 +47,18 @@ export const syncAttendanceData = async (state: AppState, dispatch: Dispatch<App
     dispatch({ type: 'ADD_TOAST', payload: { message: 'Sincronizando asistencias...', type: 'info' } });
 
     try {
-        const fetchUrl = getBaseApiUrl(apiUrl);
+        const fetchUrl = getBaseApiUrl(SYSTEM_API_URL);
+
+        const careerId = state.currentUser?.careerId || 'IAEV';
 
         // 1. Obtener registros existentes del servidor para evitar duplicados
         const serverResponse = await fetch(fetchUrl.toString(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-API-KEY': apiKey },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-API-KEY': SYSTEM_API_KEY,
+                'X-CARRERA': careerId 
+            },
             body: JSON.stringify({ action: 'get-asistencias', profesor_nombre: trimmedProfessorName })
         });
         if (!serverResponse.ok) throw new Error("Error al obtener datos");
@@ -62,10 +68,12 @@ export const syncAttendanceData = async (state: AppState, dispatch: Dispatch<App
         const serverRecordsMap = new Map<string, string>();
         serverRecords.forEach(rec => {
             if (rec.alumno_nombre && rec.fecha && rec.grupo_nombre) {
-                // Key mejorada con IDs si están disponibles, sino nombres normalizados
-                const aid = rec.alumno_id && rec.alumno_id !== '0' ? rec.alumno_id : normalizeForMatch(rec.alumno_nombre);
-                const gid = rec.grupo_id && rec.grupo_id !== 'sin_grupo' ? rec.grupo_id : normalizeForMatch(rec.grupo_nombre);
-                const key = `${aid}-${gid}-${rec.fecha}`;
+                // Generamos una llave híbrida: ID si existe, sino nombre normalizado
+                const aid = (rec.alumno_id && rec.alumno_id !== '0') ? rec.alumno_id : normalizeForMatch(rec.alumno_nombre);
+                const gid = (rec.grupo_id && rec.grupo_id !== '0') ? rec.grupo_id : normalizeForMatch(rec.grupo_nombre);
+                const mid = (rec.materia_id && rec.materia_id !== '0') ? rec.materia_id : normalizeForMatch(rec.materia_nombre || "");
+                
+                const key = `${aid}-${gid}-${mid}-${rec.fecha}`;
                 serverRecordsMap.set(key, rec.status);
             }
         });
@@ -83,7 +91,12 @@ export const syncAttendanceData = async (state: AppState, dispatch: Dispatch<App
                     if (localStatus === AttendanceStatus.Pending) continue;
 
                     // Verificamos si ya existe en el servidor para no re-enviar innecesariamente
-                    const key = `${student.id}-${group.id}-${date}`;
+                    // USAMOS LA MISMA LÓGICA DE LLAVE QUE ARRIBA
+                    const aid = (student.id && student.id.length > 5) ? student.id : normalizeForMatch(student.name);
+                    const gid = (group.id && group.id.length > 5) ? group.id : normalizeForMatch(group.name);
+                    const mid = normalizeForMatch(group.subject || "");
+                    
+                    const key = `${aid}-${gid}-${mid}-${date}`;
                     const serverStatus = serverRecordsMap.get(key);
 
                     if (!serverStatus || serverStatus !== localStatus) {
@@ -110,7 +123,11 @@ export const syncAttendanceData = async (state: AppState, dispatch: Dispatch<App
         // 3. Ejecutar sincronización (Envío como ARRAY DIRECTO según espera api.php Caso 5)
         const syncResponse = await fetch(fetchUrl.toString(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-API-KEY': apiKey },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-API-KEY': SYSTEM_API_KEY,
+                'X-CARRERA': careerId
+            },
             body: JSON.stringify(recordsToSync), // ARRAY DIRECTO
         });
 
@@ -130,7 +147,7 @@ export const syncAttendanceData = async (state: AppState, dispatch: Dispatch<App
 export const syncGradesData = async (state: AppState, dispatch: Dispatch<AppAction>, settings: Settings) => {
     if (!checkSettings(settings, dispatch)) return;
     const { grades, evaluations, groups, attendance } = state;
-    const { apiUrl, apiKey, professorName } = settings;
+    const { professorName } = settings;
     try {
         const recordsToSync: any[] = [];
         groups.forEach(group => {
@@ -158,10 +175,15 @@ export const syncGradesData = async (state: AppState, dispatch: Dispatch<AppActi
             });
         });
         if (recordsToSync.length === 0) return;
-        const syncUrl = getBaseApiUrl(apiUrl);
+        const careerId = state.currentUser?.careerId || 'IAEV';
+        const syncUrl = getBaseApiUrl(SYSTEM_API_URL);
         await fetch(syncUrl.toString(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-API-KEY': apiKey },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-API-KEY': SYSTEM_API_KEY,
+                'X-CARRERA': careerId
+            },
             body: JSON.stringify({ action: 'sync-calificaciones', data: recordsToSync }),
         });
         dispatch({ type: 'ADD_TOAST', payload: { message: `Calificaciones actualizadas.`, type: 'success' } });
@@ -174,19 +196,25 @@ export const syncTutorshipData = async (state: AppState, dispatch: Dispatch<AppA
     if (!checkSettings(settings, dispatch)) return;
 
     const { tutorshipData = {}, groups = [], groupTutors = {} } = state;
-    const { apiUrl, apiKey, professorName } = settings;
+    const { professorName } = settings;
 
     if (!silent) {
         dispatch({ type: 'ADD_TOAST', payload: { message: 'Sincronizando fichas...', type: 'info' } });
     }
 
     try {
-        const syncUrl = getBaseApiUrl(apiUrl);
+        const syncUrl = getBaseApiUrl(SYSTEM_API_URL);
+
+        const careerId = state.currentUser?.careerId || 'IAEV';
 
         // 1. DESCARGAR (PULL)
         const getResponse = await fetch(syncUrl.toString(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-API-KEY': apiKey },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-API-KEY': SYSTEM_API_KEY,
+                'X-CARRERA': careerId
+            },
             body: JSON.stringify({ action: 'get-tutoreo', profesor_nombre: professorName })
         });
 
@@ -275,7 +303,11 @@ export const syncTutorshipData = async (state: AppState, dispatch: Dispatch<AppA
         if (recordsToUpload.length > 0) {
             await fetch(syncUrl.toString(), {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-API-KEY': apiKey },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-API-KEY': SYSTEM_API_KEY,
+                    'X-CARRERA': careerId
+                },
                 body: JSON.stringify({
                     action: 'sync-tutoreo',
                     data: recordsToUpload,
@@ -302,22 +334,30 @@ export const syncScheduleData = async (state: AppState, dispatch: Dispatch<AppAc
         return;
     }
     try {
-        const horario = await fetchHorarioCompleto(settings.professorName.trim());
+        const fetchResult = await fetchHorarioCompleto(settings.professorName.trim(), state.currentUser?.careerId);
+        const horario = fetchResult.horario;
+        const gruposBackend = fetchResult.grupos;
+        
         if (horario.length === 0) return;
 
         dispatch({ type: 'SET_TEACHER_SCHEDULE', payload: horario });
 
-        const clasesPorGrupoUnico: { [key: string]: { sub: string; name: string; days: string[]; students: any[] } } = {};
+        const clasesPorGrupoUnico: { [key: string]: { sub: string; name: string; days: string[]; students: any[]; oficial: boolean; docenteConf: string; sourceGroupId: string } } = {};
 
         horario.forEach(c => {
             const uniqueKey = `${c.groupName} - ${c.subjectName}`;
 
             if (!clasesPorGrupoUnico[uniqueKey]) {
+                const bGrupo = gruposBackend.find((g: any) => g.id === c.group_id || normalizeForMatch(g.nombre) === normalizeForMatch(c.groupName));
+                
                 clasesPorGrupoUnico[uniqueKey] = {
                     sub: c.subjectName,
                     name: c.groupName,
+                    sourceGroupId: bGrupo?.id,
                     days: [],
-                    students: c.students || []
+                    students: c.students || [],
+                    oficial: bGrupo?.lista_oficial_cargada || false,
+                    docenteConf: bGrupo?.docente_confianza_id || ''
                 };
             }
             if (!clasesPorGrupoUnico[uniqueKey].days.includes(c.day)) {
@@ -331,18 +371,38 @@ export const syncScheduleData = async (state: AppState, dispatch: Dispatch<AppAc
                 normalizeForMatch(g.subject) === normalizeForMatch(info.sub)
             );
 
-            if (exist) {
+            // Determinar si hay notificación de lista oficial
+            if (exist && !exist.lista_oficial_cargada && info.oficial) {
+                // El coordinador adoptó la lista oficial. Actualizamos alumnos forzosamente.
+                dispatch({ 
+                    type: 'ADD_TOAST', 
+                    payload: { message: `Lista Oficial publicada para ${info.name}. Alumnos actualizados sincronizadamente.`, type: 'info' } 
+                });
+                
                 dispatch({
                     type: 'SAVE_GROUP', payload: {
                         ...exist,
                         classDays: info.days as DayOfWeek[],
-                        students: (exist.students.length === 0 && info.students.length > 0) ? info.students : exist.students
+                        students: info.students, // Sobreescribimos la provisional
+                        lista_oficial_cargada: true,
+                        docente_confianza_id: info.docenteConf
+                    }
+                });
+            } else if (exist) {
+                // Actualización norma
+                dispatch({
+                    type: 'SAVE_GROUP', payload: {
+                        ...exist,
+                        classDays: info.days as DayOfWeek[],
+                        students: (exist.students.length === 0 && info.students.length > 0) ? info.students : exist.students,
+                        lista_oficial_cargada: info.oficial,
+                        docente_confianza_id: info.docenteConf
                     }
                 });
             } else {
                 dispatch({
                     type: 'SAVE_GROUP', payload: {
-                        id: uuidv4(),
+                        id: info.sourceGroupId || uuidv4(),
                         name: info.name,
                         subject: info.sub,
                         classDays: info.days as DayOfWeek[],
@@ -351,7 +411,9 @@ export const syncScheduleData = async (state: AppState, dispatch: Dispatch<AppAc
                         evaluationTypes: {
                             partial1: [{ id: uuidv4(), name: 'General', weight: 100 }],
                             partial2: [{ id: uuidv4(), name: 'General', weight: 100 }]
-                        }
+                        },
+                        lista_oficial_cargada: info.oficial,
+                        docente_confianza_id: info.docenteConf
                     } as Group
                 });
             }
@@ -359,5 +421,39 @@ export const syncScheduleData = async (state: AppState, dispatch: Dispatch<AppAc
         dispatch({ type: 'ADD_TOAST', payload: { message: 'Horario y Alumnos actualizados.', type: 'success' } });
     } catch (e) {
         dispatch({ type: 'ADD_TOAST', payload: { message: 'Error al cargar horario.', type: 'error' } });
+    }
+};
+
+/**
+ * Obtiene los grupos que ya han sincronizado asistencia hoy desde el servidor
+ */
+export const fetchTodaySyncStatus = async (settings: any, dispatch: any) => {
+    if (!settings.apiUrl) return;
+
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const response = await fetch(settings.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-API-KEY': settings.apiKey },
+            body: JSON.stringify({
+                action: 'get-asistencias',
+                profesor_nombre: settings.professorName,
+                fecha: today
+            })
+        });
+
+        const result = await response.json();
+        if (result.status === 'success' && Array.isArray(result.data)) {
+            // Extraemos combinaciones únicas de grupo|materia que tienen al menos un registro hoy
+            const syncedStrings = new Set<string>();
+            result.data.forEach((rec: any) => {
+                if (rec.fecha === today) {
+                    syncedStrings.add(`${rec.grupo_nombre}|${rec.materia_nombre}`);
+                }
+            });
+            dispatch({ type: 'SET_SYNCED_GROUPS_TODAY', payload: Array.from(syncedStrings) });
+        }
+    } catch (error) {
+        console.error("Error al obtener estatus de sincronización:", error);
     }
 };
